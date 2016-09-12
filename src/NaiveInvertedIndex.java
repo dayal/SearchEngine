@@ -24,9 +24,6 @@ public class NaiveInvertedIndex {
 		   docIDs.add(documentID);
 		   mIndex.put(term, docIDs);
 	   }
-      
-      
-      
    }
    
    public List<Integer> getPostings(String term) {

@@ -7,3 +7,7 @@
 /SimpleEngine.class
 /SimpleTokenStream.class
 /TokenStream.class
+/PositionalInvertedIndex.class
+/PositionalPosting.class
+/PIndexSearchEngine.class
+/PIndexSearchEngine$1.class
