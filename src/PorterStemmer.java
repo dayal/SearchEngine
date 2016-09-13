@@ -32,7 +32,6 @@ public class PorterStemmer {
 	private static final Pattern doubleC = Pattern.compile(".+([^lsz])\\1{1}");
 	private static final Pattern Cvc = Pattern.compile("^(" + C + "){1}" + v + "[^aeiouwxy]");
 
-
 	public static String processToken(String token) {
 		if (token.length() < 3) {
 			return token; // token must be at least 3 chars
@@ -127,8 +126,7 @@ public class PorterStemmer {
 				new String[] { "ful", "" }, new String[] { "ness", "" } };
 
 		token = replaceString(token, step3pairs, mGr0);
-		
-		
+
 		// step 4
 		// program this step similar to step 2/3, except now the stem must have
 		// measure > 1.
@@ -157,14 +155,14 @@ public class PorterStemmer {
 				token = stem;
 			}
 		}
-		
+
 		if (token.endsWith("ll")) {
 			String stem = token.substring(0, token.length() - 2);
 			if (mGr1.matcher(token).matches()) { // use token not stem here
 				token = token.substring(0, token.length() - 1);
 			}
 		}
-		
+
 		return token;
 	}
 
@@ -191,48 +189,6 @@ public class PorterStemmer {
 		for (String string : strings) {
 			System.out.println(PorterStemmer.processToken(string));
 		}
-		
-		Literal literal1 = new Literal();
-		literal1.isPhrase = false;
-		literal1.strings[0] = "shakes";
-		
-		Literal literal2 = new Literal();
-		literal2.isPhrase = true;
-		literal2.strings = new String[]{"Jamba", "Juice"};
-		
-		QueryLiteral ql1 = new QueryLiteral();
-		ql1.literalList = new ArrayList<Literal>();
-		ql1.literalList.add(literal1);
-		ql1.literalList.add(literal2);
-		
 
-		Literal literal3 = new Literal();
-		literal3.isPhrase = false;
-		literal3.strings[0] = "manav";
-		
-		QueryLiteral ql2 = new QueryLiteral();
-		ql2.literalList = new ArrayList<Literal>();
-		ql2.literalList.add(literal3);
-		
-		Query q = new Query();
-		q.queryLiteralList = new ArrayList<QueryLiteral>();
-		q.queryLiteralList.add(ql1);
-		q.queryLiteralList.add(ql2);
-	}
-
-	
-	
-	private static class Query {
-		List<QueryLiteral> queryLiteralList;
-	}
-	
-	private static class QueryLiteral {
-		List<Literal> literalList;
-	}
-	
-	private static  class Literal {
-		boolean isPhrase;
-		boolean isPositive;
-		String[] strings;
 	}
 }
