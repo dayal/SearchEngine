@@ -8,14 +8,18 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 public class PIndexSearchEngine {
 
 	public static void main(String[] args) throws IOException {
 
 		Scanner read = new Scanner(System.in);
+		read.useDelimiter(System.getProperty("line.separator"));
+
 		System.out.println("Enter the directory path containing the corpus");
 
 		String userInput = read.next();
@@ -72,28 +76,47 @@ public class PIndexSearchEngine {
 		// retrieve the postings list for that term, and print the names of the
 		// documents which contain the term.
 
-		/*String word = "";
+		String word = "";
 
+//		while (true) {
+//			Scanner getUserInput = new Scanner(System.in);
+//			System.out.print("Enter a term to search for : ");
+//			word = getUserInput.next();
+//
+//			if (word.equalsIgnoreCase("quit")) {
+//				System.out.println("\nBBye!");
+//				break;
+//			}
+//
+//			System.out.print(word + ": ");
+//			for (int i = 0; i < index.getPostings(word).size(); i++) {
+//				int fileIndex = index.getPostings(word).get(i);
+//				System.out.print(fileNames.get(fileIndex));
+//				if (i != index.getPostings(word).size() - 1) {
+//					System.out.print(", ");
+//				}
+//			}
+//			System.out.println("\n");
+//		}
+		
 		while (true) {
-			Scanner getUserInput = new Scanner(System.in);
-			System.out.print("Enter a term to search for : ");
-			word = getUserInput.next();
+			Scanner scanner = new Scanner(System.in);
+			scanner.useDelimiter(System.getProperty("line.separator"));
+			System.out.print("Enter queries to search for: ");
+			String input = scanner.next();
 
-			if (word.equalsIgnoreCase("quit")) {
+			if (input.equalsIgnoreCase("quit")) {
 				System.out.println("\nBBye!");
 				break;
 			}
 
-			System.out.print(word + ": ");
-			for (int i = 0; i < index.getPostings(word).size(); i++) {
-				int fileIndex = index.getPostings(word).get(i);
-				System.out.print(fileNames.get(fileIndex));
-				if (i != index.getPostings(word).size() - 1) {
-					System.out.print(", ");
-				}
+			Set<Integer> documentIds = runQueries(input, index);
+			System.out.println("files matching queries:");
+			for (int documentId : documentIds) {
+				System.out.println(fileNames.get(documentId));
 			}
-			System.out.println("\n");
-		}*/
+		}
+
 
 	}
 
@@ -121,7 +144,7 @@ public class PIndexSearchEngine {
 			int position = 0;
 
 			while (tokenStream.hasNextToken()) {
-				index.addTerm(tokenStream.nextToken(), position, docID);
+				index.addTerm(PorterStemmer.processToken(tokenStream.nextToken()), position, docID);
 				position++;
 			}
 
@@ -158,13 +181,14 @@ public class PIndexSearchEngine {
 		for (String term : index.getDictionary()) {
 			System.out.print(term + ":");
 			printSpaces(longestTerm - term.length() + 2);
-			
-			//System.out.println("Size of posting list : " + index.getPostings(term).size());
-			
+
+			// System.out.println("Size of posting list : " +
+			// index.getPostings(term).size());
+
 			for (PositionalPosting posting : index.getPostings(term)) {
 				int fileIndex = posting.getDocumentId();
 				System.out.print("<" + fileNames.get(fileIndex) + " : [");
-				
+
 				for (Integer position : posting.getPositions()) {
 					System.out.print(position + ",");
 				}
@@ -172,6 +196,49 @@ public class PIndexSearchEngine {
 			}
 			System.out.println();
 		}
+	}
+
+	private static Set<Integer> runQueries(String queryInput, PositionalInvertedIndex index) {
+		Set<Integer> documentIds = new HashSet<Integer>();
+		List<Query> queries = QueryParser.parseQuery(queryInput);
+
+		for (Query query : queries) {
+			documentIds.addAll(getDocumentIdsMatchingQuery(query, index));
+		}
+
+		return documentIds;
+	}
+
+	private static Set<Integer> getDocumentIdsMatchingQuery(Query query, PositionalInvertedIndex index) {
+		Set<Integer> documentIds = new HashSet<Integer>();
+		for (QueryLiteral queryLiteral : query.getQueryLiterals()) {
+			// documentIds that match the current query literal that is being
+			// processed
+			Set<Integer> currentDocumentIds = new HashSet<Integer>();
+			if (!queryLiteral.isPhrase()) {
+				List<PositionalPosting> positionalPostings = index
+						.getPostings(PorterStemmer.processToken(queryLiteral.getTokens().get(0).toLowerCase()));
+				if (positionalPostings != null) {
+					for (PositionalPosting positionalPosting : positionalPostings) {
+						currentDocumentIds.add(positionalPosting.getDocumentId());
+					}
+				}
+			} else {
+				// TODO
+			}
+			
+			if (currentDocumentIds.isEmpty()) {
+				return new HashSet<Integer>(); // return empty set because no document matches query
+			} else {
+				if (documentIds.isEmpty()) {
+					documentIds.addAll(currentDocumentIds);
+				} else {
+					documentIds.retainAll(currentDocumentIds); // only keep the intersection
+				}
+			}
+		}
+
+		return documentIds;
 	}
 
 	// prints a bunch of spaces
