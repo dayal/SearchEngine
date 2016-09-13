@@ -23,6 +23,7 @@ public class PIndexSearchEngine {
 		System.out.println("Enter the directory path containing the corpus");
 
 		String userInput = read.next();
+
 		// Do we need to replace the forward or backward slashes in the
 		// directory path
 		// String userInput = read.next().replaceAll("\\*", "\\");
@@ -98,12 +99,10 @@ public class PIndexSearchEngine {
 //			}
 //			System.out.println("\n");
 //		}
-		
+
 		while (true) {
-			Scanner scanner = new Scanner(System.in);
-			scanner.useDelimiter(System.getProperty("line.separator"));
 			System.out.print("Enter queries to search for: ");
-			String input = scanner.next();
+			String input = read.next();
 
 			if (input.equalsIgnoreCase("quit")) {
 				System.out.println("\nBBye!");
@@ -116,7 +115,7 @@ public class PIndexSearchEngine {
 				System.out.println(fileNames.get(documentId));
 			}
 		}
-
+		read.close();
 
 	}
 
