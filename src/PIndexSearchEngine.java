@@ -79,26 +79,26 @@ public class PIndexSearchEngine {
 
 		String word = "";
 
-//		while (true) {
-//			Scanner getUserInput = new Scanner(System.in);
-//			System.out.print("Enter a term to search for : ");
-//			word = getUserInput.next();
-//
-//			if (word.equalsIgnoreCase("quit")) {
-//				System.out.println("\nBBye!");
-//				break;
-//			}
-//
-//			System.out.print(word + ": ");
-//			for (int i = 0; i < index.getPostings(word).size(); i++) {
-//				int fileIndex = index.getPostings(word).get(i);
-//				System.out.print(fileNames.get(fileIndex));
-//				if (i != index.getPostings(word).size() - 1) {
-//					System.out.print(", ");
-//				}
-//			}
-//			System.out.println("\n");
-//		}
+		// while (true) {
+		// Scanner getUserInput = new Scanner(System.in);
+		// System.out.print("Enter a term to search for : ");
+		// word = getUserInput.next();
+		//
+		// if (word.equalsIgnoreCase("quit")) {
+		// System.out.println("\nBBye!");
+		// break;
+		// }
+		//
+		// System.out.print(word + ": ");
+		// for (int i = 0; i < index.getPostings(word).size(); i++) {
+		// int fileIndex = index.getPostings(word).get(i);
+		// System.out.print(fileNames.get(fileIndex));
+		// if (i != index.getPostings(word).size() - 1) {
+		// System.out.print(", ");
+		// }
+		// }
+		// System.out.println("\n");
+		// }
 
 		while (true) {
 			System.out.print("Enter queries to search for: ");
@@ -109,10 +109,10 @@ public class PIndexSearchEngine {
 				break;
 			}
 
-			Set<Integer> documentIds = runQueries(input, index);
+			List<Integer> docIds = runQueries(input, index);
 			System.out.println("files matching queries:");
-			for (int documentId : documentIds) {
-				System.out.println(fileNames.get(documentId));
+			for (int docId : docIds) {
+				System.out.println(fileNames.get(docId));
 			}
 		}
 		read.close();
@@ -197,47 +197,85 @@ public class PIndexSearchEngine {
 		}
 	}
 
-	private static Set<Integer> runQueries(String queryInput, PositionalInvertedIndex index) {
-		Set<Integer> documentIds = new HashSet<Integer>();
+	private static List<Integer> runQueries(String queryInput, PositionalInvertedIndex index) {
+		List<Integer> docIds = new ArrayList<Integer>();
 		List<Query> queries = QueryParser.parseQuery(queryInput);
 
 		for (Query query : queries) {
-			documentIds.addAll(getDocumentIdsMatchingQuery(query, index));
+			docIds = getUnion(docIds, getdocIdsMatchingQuery(query, index));
 		}
 
-		return documentIds;
+		return docIds;
 	}
 
-	private static Set<Integer> getDocumentIdsMatchingQuery(Query query, PositionalInvertedIndex index) {
-		Set<Integer> documentIds = new HashSet<Integer>();
+	private static List<Integer> getdocIdsMatchingQuery(Query query, PositionalInvertedIndex index) {
+		List<Integer> results = new ArrayList<Integer>();
 		for (QueryLiteral queryLiteral : query.getQueryLiterals()) {
-			// documentIds that match the current query literal that is being
+			// docIds that match the current query literal that is being
 			// processed
-			Set<Integer> currentDocumentIds = new HashSet<Integer>();
+			List<Integer> docIds = new ArrayList<Integer>();
 			if (!queryLiteral.isPhrase()) {
 				List<PositionalPosting> positionalPostings = index
 						.getPostings(PorterStemmer.processToken(queryLiteral.getTokens().get(0).toLowerCase()));
 				if (positionalPostings != null) {
 					for (PositionalPosting positionalPosting : positionalPostings) {
-						currentDocumentIds.add(positionalPosting.getDocumentId());
+						docIds.add(positionalPosting.getDocumentId());
 					}
 				}
 			} else {
 				// TODO
 			}
-			
-			if (currentDocumentIds.isEmpty()) {
-				return new HashSet<Integer>(); // return empty set because no document matches query
+
+			if (results.isEmpty()) {
+				results = docIds;
 			} else {
-				if (documentIds.isEmpty()) {
-					documentIds.addAll(currentDocumentIds);
-				} else {
-					documentIds.retainAll(currentDocumentIds); // only keep the intersection
-				}
+				results = getIntersection(results, docIds);
 			}
 		}
 
-		return documentIds;
+		return results;
+	}
+
+	// helper method to get the union of two sorted docId lists
+	private static List<Integer> getUnion(List<Integer> docIdsA, List<Integer> docIdsB) {
+		int i = 0, j = 0;
+		List<Integer> results = new ArrayList<Integer>();
+		while (i < docIdsA.size() && j < docIdsB.size()) {
+			if (docIdsA.get(i) < docIdsB.get(j)) {
+				results.add(docIdsA.get(i++));
+			} else if (docIdsA.get(i) > docIdsB.get(j)) {
+				results.add(docIdsB.get(j++));
+			} else {
+				results.add(docIdsA.get(i++));
+				j++;
+			}
+		}
+		while (i < docIdsA.size()) {
+			results.add(docIdsA.get(i++));
+		}
+		while (j < docIdsB.size()) {
+			results.add(docIdsB.get(j++));
+		}
+
+		return results;
+	}
+
+	// helper method to get the intersection of two sorted docId lists
+	private static List<Integer> getIntersection(List<Integer> docIdsA, List<Integer> docIdsB) {
+		int i = 0, j = 0;
+		List<Integer> results = new ArrayList<Integer>();
+		while (i < docIdsA.size() && j < docIdsB.size()) {
+			if (docIdsA.get(i) < docIdsB.get(j)) {
+				i++;
+			} else if (docIdsA.get(i) > docIdsB.get(j)) {
+				j++;
+			} else {
+				results.add(docIdsA.get(i++));
+				j++;
+			}
+		}
+
+		return results;
 	}
 
 	// prints a bunch of spaces
