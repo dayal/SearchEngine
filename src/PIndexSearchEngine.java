@@ -223,7 +223,45 @@ public class PIndexSearchEngine {
 					}
 				}
 			} else {
-				// TODO
+				List<PositionalPosting> postings = new ArrayList<PositionalPosting>();
+				for (int i = 0; i < queryLiteral.getTokens().size(); i++) {
+					String token = queryLiteral.getTokens().get(i);
+					List<PositionalPosting> currentPostings = index
+							.getPostings(PorterStemmer.processToken(token.toLowerCase()));
+					if (postings.isEmpty()) {
+						postings = currentPostings;
+					} else {
+						int j = 0, k = 0;
+						List<PositionalPosting> newPostings = new ArrayList<PositionalPosting>();
+						while (j < postings.size() && k < currentPostings.size()) {
+							if (postings.get(j).getDocumentId() < postings.get(k).getDocumentId()) {
+								j++;
+							} else if (postings.get(j).getDocumentId() > postings.get(k).getDocumentId()) {
+								k++;
+							} else {
+								// if postings have the same documentId
+								List<Integer> postingsPositions = postings.get(j).getPositions();
+								List<Integer> currentPostingsPositions = new ArrayList<Integer>(
+										currentPostings.get(k).getPositions());
+								for (int l = 0; l < currentPostingsPositions.size(); l++) {
+									currentPostingsPositions.set(l, currentPostingsPositions.get(l) - 1);
+								}
+								List<Integer> newPostingsPositions = getIntersection(postingsPositions,
+										currentPostingsPositions);
+								if (!newPostingsPositions.isEmpty()) {
+									newPostings.add(new PositionalPosting(postings.get(j).getDocumentId(),
+											getIntersection(postingsPositions, currentPostingsPositions)));
+								}
+								j++;
+								k++;
+							}
+						}
+						postings = newPostings;
+					}
+				}
+				for (PositionalPosting posting : postings) {
+					docIds.add(posting.getDocumentId());
+				}
 			}
 
 			if (results.isEmpty()) {

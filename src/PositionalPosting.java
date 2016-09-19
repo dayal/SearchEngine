@@ -9,6 +9,11 @@ public class PositionalPosting {
 	public PositionalPosting() {
 		this.positions = new ArrayList<Integer>();
 	}
+	
+	public PositionalPosting(int documentId, List<Integer> positions) {
+		this.documentId = documentId;
+		this.positions = positions;
+	}
 
 	public int getDocumentId() {
 		return this.documentId;
