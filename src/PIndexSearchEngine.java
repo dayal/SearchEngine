@@ -8,10 +8,8 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 
 public class PIndexSearchEngine {
 
@@ -234,9 +232,9 @@ public class PIndexSearchEngine {
 						int j = 0, k = 0;
 						List<PositionalPosting> newPostings = new ArrayList<PositionalPosting>();
 						while (j < postings.size() && k < currentPostings.size()) {
-							if (postings.get(j).getDocumentId() < postings.get(k).getDocumentId()) {
+							if (postings.get(j).getDocumentId() < currentPostings.get(k).getDocumentId()) {
 								j++;
-							} else if (postings.get(j).getDocumentId() > postings.get(k).getDocumentId()) {
+							} else if (postings.get(j).getDocumentId() > currentPostings.get(k).getDocumentId()) {
 								k++;
 							} else {
 								// if postings have the same documentId
@@ -267,7 +265,11 @@ public class PIndexSearchEngine {
 			if (results.isEmpty()) {
 				results = docIds;
 			} else {
-				results = getIntersection(results, docIds);
+				if (queryLiteral.isPositive()) {
+					results = getIntersection(results, docIds);
+				} else {
+					results = getDifference(results, docIds);
+				}
 			}
 		}
 
@@ -311,6 +313,28 @@ public class PIndexSearchEngine {
 				results.add(docIdsA.get(i++));
 				j++;
 			}
+		}
+
+		return results;
+	}
+
+	// helper method to get the difference of two sorted docId lists
+	private static List<Integer> getDifference(List<Integer> docIdsA, List<Integer> docIdsB) {
+		int i = 0, j = 0;
+		List<Integer> results = new ArrayList<Integer>();
+		while (i < docIdsA.size() && j < docIdsB.size()) {
+			if (docIdsA.get(i) < docIdsB.get(j)) {
+				results.add(docIdsA.get(i++));
+			} else if (docIdsA.get(i) > docIdsB.get(j)) {
+				j++;
+			} else {
+				i++;
+				j++;
+			}
+		}
+
+		while (i < docIdsA.size()) {
+			results.add(docIdsA.get(i++));
 		}
 
 		return results;

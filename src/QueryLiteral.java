@@ -1,6 +1,19 @@
 import java.util.List;
 
 public class QueryLiteral {
+	
+	private boolean isPhrase;
+	private List<String> tokens;
+	private boolean isPositive;
+	
+	public boolean isPositive() {
+		return isPositive;
+	}
+
+	public void setPositive(boolean isPositive) {
+		this.isPositive = isPositive;
+	}
+
 	public boolean isPhrase() {
 		return isPhrase;
 	}
@@ -17,6 +30,4 @@ public class QueryLiteral {
 		this.tokens = tokens;
 	}
 
-	private boolean isPhrase;
-	private List<String> tokens;
 }

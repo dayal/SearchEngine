@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class QueryParser {
@@ -13,13 +14,21 @@ public class QueryParser {
 		String[] queryStrings = queryInput.split(" \\+ ");
 		for (String queryString : queryStrings) {
 			Query query = new Query();
-			List<QueryLiteral> queryLiterals = new ArrayList<QueryLiteral>();
+			List<QueryLiteral> queryLiterals = new LinkedList<QueryLiteral>();
 			String[] literalStrings = queryString.split(" ");
 
 			int i = 0;
 			while (i < literalStrings.length) {
 				QueryLiteral queryLiteral = new QueryLiteral();
 				queryLiteral.setTokens(new ArrayList<String>());
+				if (literalStrings[i].startsWith("-")) {
+					queryLiteral.setPositive(false);
+					// remove "-"
+					literalStrings[i] = literalStrings[i].substring(1);
+				} else {
+					queryLiteral.setPositive(true);
+				}
+				
 				if (literalStrings[i].startsWith("\"")) {
 					queryLiteral.setPhrase(true);
 					queryLiteral.getTokens().add(literalStrings[i].substring(1));
@@ -37,7 +46,13 @@ public class QueryParser {
 					queryLiteral.getTokens().add(literalStrings[i]);
 					i++;
 				}
-				queryLiterals.add(queryLiteral);
+				
+				// add query literal to the front of the list if positive, end of the list otherwise
+				if (queryLiteral.isPositive()) {
+					queryLiterals.add(0, queryLiteral);
+				} else {
+					queryLiterals.add(queryLiteral);
+				}
 			}
 			query.setQueryLiterals(queryLiterals);
 			queryList.add(query);
