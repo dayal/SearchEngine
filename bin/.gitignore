@@ -1,13 +1,1 @@
-/NaiveInvertedIndex.class
-/PorterStemmer$Literal.class
-/PorterStemmer$Query.class
-/PorterStemmer$QueryLiteral.class
-/PorterStemmer.class
-/SimpleEngine$1.class
-/SimpleEngine.class
-/SimpleTokenStream.class
-/TokenStream.class
-/PositionalInvertedIndex.class
-/PositionalPosting.class
-/PIndexSearchEngine.class
-/PIndexSearchEngine$1.class
+/com/
