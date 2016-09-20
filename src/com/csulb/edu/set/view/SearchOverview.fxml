@@ -24,7 +24,7 @@
                                 <buttons>
                                   <Button fx:id="search" mnemonicParsing="false" onMouseClicked="#searchCorpus" text="Search" />
                                     <Button fx:id="quitApplication" mnemonicParsing="false" onMouseClicked="#quitApplication" text="Quit" />
-                                    <Button fx:id="findStem" mnemonicParsing="false" onMouseClicked="#findStem" text="Find Stem" />
+                                    <Button fx:id="findStem" mnemonicParsing="false" onAction="#findStem" onMouseClicked="#findStem" text="Find Stem" />
                                     <Button fx:id="printVocab" mnemonicParsing="false" onMouseClicked="#printVocabulary" prefHeight="14.0" prefWidth="161.0" text="Print Vocabulary" />
                                 </buttons>
                                  <padding>

@@ -1,7 +1,11 @@
 package com.csulb.edu.set;
+
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,9 +15,16 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonWriter;
 
 public class PIndexSearchEngine {
-	
+
 	public static List<String> fileNames;
 
 	public static void main(String[] args) throws IOException {
@@ -27,7 +38,7 @@ public class PIndexSearchEngine {
 
 		// the inverted index
 		final PositionalInvertedIndex index = createPositionalInvertedIndex(userInput);
-		
+
 		// Prints the inverted index
 		printResults(index, fileNames);
 
@@ -82,10 +93,10 @@ public class PIndexSearchEngine {
 	 * 
 	 * @param pInvertedIndex
 	 * @param directory
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public static PositionalInvertedIndex createPositionalInvertedIndex(String directory) throws IOException {
-		
+
 		final Path currentWorkingPath = Paths.get(directory).toAbsolutePath();
 
 		// the inverted index
@@ -108,16 +119,15 @@ public class PIndexSearchEngine {
 
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
 				// only process .txt files
-				if (file.toString().endsWith(".txt")) {
+				if (file.toString().endsWith(".json")) {
 					// we have found a .txt file; add its name to the fileName
 					// list,
 					// then index the file and increase the document ID counter.
 					System.out.println("Indexing file " + file.getFileName());
 
 					fileNames.add(file.getFileName().toString());
-					
+
 					// Get the contents of the body element of the file name
-					
 					indexFile(file.toFile(), index, mDocumentID);
 					mDocumentID++;
 				}
@@ -130,10 +140,10 @@ public class PIndexSearchEngine {
 			}
 
 		});
-		
+
 		return index;
 	}
-	
+
 	/**
 	 * Indexes a file by reading a series of tokens from the file, treating each
 	 * token as a term, and then adding the given document's ID to the inverted
@@ -148,21 +158,53 @@ public class PIndexSearchEngine {
 	 *            the integer ID of the current document, needed when indexing
 	 *            each term from the document.
 	 */
-	private static void indexFile(File file, PositionalInvertedIndex index, int docID) {
+	private static void indexFile(File jsonFile, PositionalInvertedIndex index, int docID) {
 		// TO-DO: finish this method for indexing a particular file.
 		// Construct a SimpleTokenStream for the given File.
 		// Read each token from the stream and add it to the index.
 
 		try {
-			TokenStream tokenStream = new SimpleTokenStream(file);
+			Reader reader = null;
+			try {
+				reader = new FileReader(jsonFile.toString());
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			JsonParser jsonParser = new JsonParser();
+			JsonElement element = jsonParser.parse(reader);
+			
+			String bodyContents = "";
+			String title = "";
+
+			if (element.isJsonObject()) {
+				JsonObject doc = element.getAsJsonObject();
+				bodyContents = doc.get("body").getAsString();
+				title = doc.get("title").getAsString();
+			}
+			TokenStream tokenStream = new SimpleTokenStream(title + " " + bodyContents);
 			int position = 0;
 
 			while (tokenStream.hasNextToken()) {
-				index.addTerm(PorterStemmer.processToken(tokenStream.nextToken()), position, docID);
+				
+				String token = tokenStream.nextToken();
+				
+				// Check if the token is hyphenized
+				// Then index the terms = # of hyphens + 1				
+				if (token.contains("-")) {
+					for (String term : token.split("-")) {					
+						index.addTerm(PorterStemmer.processToken(processWord(term)), position, docID);
+						position++;
+					}
+					position--;
+				}				
+				token = processWord(token);				
+				index.addTerm(PorterStemmer.processToken(token), position, docID);
 				position++;
 			}
 
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -362,6 +404,10 @@ public class PIndexSearchEngine {
 		for (int i = 0; i < spaces; i++) {
 			System.out.print(" ");
 		}
+	}
+	
+	private static String processWord(String next) {
+		return next.replaceAll("\\W", "").toLowerCase();
 	}
 
 }
