@@ -1,3 +1,4 @@
+package com.csulb.edu.set;
 import java.util.List;
 
 public class Query {
