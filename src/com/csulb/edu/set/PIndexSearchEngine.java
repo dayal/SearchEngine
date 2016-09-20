@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Scanner;
 
 public class PIndexSearchEngine {
+	
+	public static List<String> fileNames;
 
 	public static void main(String[] args) throws IOException {
 
@@ -23,53 +25,10 @@ public class PIndexSearchEngine {
 
 		String userInput = read.next();
 
-		// Do we need to replace the forward or backward slashes in the
-		// directory path
-		// String userInput = read.next().replaceAll("\\*", "\\");
-
-		final Path currentWorkingPath = Paths.get(userInput).toAbsolutePath();
-
 		// the inverted index
-		final PositionalInvertedIndex index = new PositionalInvertedIndex();
-
-		// the list of file names that were processed
-		final List<String> fileNames = new ArrayList<String>();
-
-		// This is our standard "walk through all .txt files" code.
-		Files.walkFileTree(currentWorkingPath, new SimpleFileVisitor<Path>() {
-			int mDocumentID = 0;
-
-			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-				// make sure we only process the current working directory
-				if (currentWorkingPath.equals(dir)) {
-					return FileVisitResult.CONTINUE;
-				}
-				return FileVisitResult.SKIP_SUBTREE;
-			}
-
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-				// only process .txt files
-				if (file.toString().endsWith(".txt")) {
-					// we have found a .txt file; add its name to the fileName
-					// list,
-					// then index the file and increase the document ID counter.
-					System.out.println("Indexing file " + file.getFileName());
-
-					fileNames.add(file.getFileName().toString());
-					indexFile(file.toFile(), index, mDocumentID);
-					mDocumentID++;
-				}
-				return FileVisitResult.CONTINUE;
-			}
-
-			// don't throw exceptions if files are locked/other errors occur
-			public FileVisitResult visitFileFailed(Path file, IOException e) {
-
-				return FileVisitResult.CONTINUE;
-			}
-
-		});
-
+		final PositionalInvertedIndex index = createPositionalInvertedIndex(userInput);
+		
+		// Prints the inverted index
 		printResults(index, fileNames);
 
 		// Implement the same program as in Homework 1: ask the user for a term,
@@ -118,6 +77,63 @@ public class PIndexSearchEngine {
 
 	}
 
+	/**
+	 * Creates a Positional Inverted Index from the corpus
+	 * 
+	 * @param pInvertedIndex
+	 * @param directory
+	 * @throws IOException 
+	 */
+	public static PositionalInvertedIndex createPositionalInvertedIndex(String directory) throws IOException {
+		
+		final Path currentWorkingPath = Paths.get(directory).toAbsolutePath();
+
+		// the inverted index
+		final PositionalInvertedIndex index = new PositionalInvertedIndex();
+
+		// the list of file names that were processed
+		fileNames = new ArrayList<String>();
+
+		// This is our standard "walk through all .txt files" code.
+		Files.walkFileTree(currentWorkingPath, new SimpleFileVisitor<Path>() {
+			int mDocumentID = 0;
+
+			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+				// make sure we only process the current working directory
+				if (currentWorkingPath.equals(dir)) {
+					return FileVisitResult.CONTINUE;
+				}
+				return FileVisitResult.SKIP_SUBTREE;
+			}
+
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+				// only process .txt files
+				if (file.toString().endsWith(".txt")) {
+					// we have found a .txt file; add its name to the fileName
+					// list,
+					// then index the file and increase the document ID counter.
+					System.out.println("Indexing file " + file.getFileName());
+
+					fileNames.add(file.getFileName().toString());
+					
+					// Get the contents of the body element of the file name
+					
+					indexFile(file.toFile(), index, mDocumentID);
+					mDocumentID++;
+				}
+				return FileVisitResult.CONTINUE;
+			}
+
+			// don't throw exceptions if files are locked/other errors occur
+			public FileVisitResult visitFileFailed(Path file, IOException e) {
+				return FileVisitResult.CONTINUE;
+			}
+
+		});
+		
+		return index;
+	}
+	
 	/**
 	 * Indexes a file by reading a series of tokens from the file, treating each
 	 * token as a term, and then adding the given document's ID to the inverted

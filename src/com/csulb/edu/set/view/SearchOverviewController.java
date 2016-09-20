@@ -1,6 +1,10 @@
 package com.csulb.edu.set.view;
 
+import java.io.IOException;
+
 import com.csulb.edu.set.MainApp;
+import com.csulb.edu.set.PIndexSearchEngine;
+import com.csulb.edu.set.PositionalInvertedIndex;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -33,9 +37,11 @@ public class SearchOverviewController {
 	@FXML
 	TextArea jsonBodyContents = new TextArea();
 
+	private PositionalInvertedIndex pInvertedIndex;
+
 	// Reference to the main application.
 	private MainApp mainApp;
-	
+
 	/**
 	 * Is called by the main application to give a reference back to itself.
 	 * 
@@ -109,12 +115,29 @@ public class SearchOverviewController {
 		// Quits the application and close the window
 	}
 
+	public void createPositionalInvertedIndex(String dirPath) {
+		System.out.println("In Controller :: Begin creation of index");
+		// Begin indexing of all the files present at the directory location
+
+		// TO-DO (May be) :: Make this operation happen asynchronously
+		// Keep the search text box disabled till the time index is created
+		// If the user clicks on the search text box, show him a message saying
+		// :: Index creation in progress
+		try {
+			pInvertedIndex = PIndexSearchEngine.createPositionalInvertedIndex(dirPath);
+			System.out.println("Positional Inverted Index created successfully");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * Initializes the controller class. This method is automatically called
 	 * after the fxml file has been loaded.
 	 */
 	@FXML
 	private void initialize() {
+		jsonBodyContents = new TextArea();
 
 		jsonBodyContents.setText(
 				"Library Services       Computers There are no public access computers in the park library, but researchers may use their own battery-powered laptop computers, provided that they do so without disturbing others in the library.  AV Equipment The library has a collection of videos, DVDs, and audiotapes reflecting park themes in its holdings. These materials may be utilized in the library.  The library has a microfilm reader and a limited collection of microfilm materials, primarily consisting of microfilm reels of the Records of the St. Louis County Court and St. Louis County Commissioners which correspond to the approximate dates that the St. Louis County government was housed in the Old Courthouse. Photocopying A fee of 15 cents per page is charged for photocopies for public researchers. Checks or cash are accepted as payment for copies. The park reserves the right to refuse to honor requests for photocopies of rare books or general materials if, in the Librarian's judgment, photocopying would be detrimental to the material or an infringement of copyright laws.  Scanning  Scans are 15 cents per page or image. Read our complete scanning policy here.  Library Catalog The library staff will be glad to provide you with information on our holdings. Researchers may also access our holdings online via a temporary website that allows the public to view cataloged titles within the National Park Service libraries. The link to the website is here.  1. Use the basic search to locate a book by title, author or subject. 2. An \"advanced\" search function is also available. There are many options within this search function. There are also several \"help\" links within the advanced search function.   This is a temporary search engine/website. Further developments will be coming in the next several months to make it easier to access NPS titles online. If you have any problem using the online catalog, please call the Jefferson National Expansion Memorial Library for assistance.   JNEM Library books do not circulate to the public, but researchers may use our books and other materials in the park library. The library does not participate in the inter-library program. The library can be reached Monday through Friday, 8 a.m. to 4:30 p.m. at (314) 655-1632.");
@@ -139,6 +162,16 @@ public class SearchOverviewController {
 	 * method.
 	 */
 	public SearchOverviewController() {
+	}
+
+	/**
+	 * @return the pInvertedIndex
+	 */
+	public PositionalInvertedIndex getpInvertedIndex() {
+		if (pInvertedIndex == null) {
+			throw new NullPointerException("pInvertedIndex is null");
+		}
+		return pInvertedIndex;
 	}
 
 }
