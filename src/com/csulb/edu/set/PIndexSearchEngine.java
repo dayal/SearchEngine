@@ -123,7 +123,7 @@ public class PIndexSearchEngine {
 					// we have found a .txt file; add its name to the fileName
 					// list,
 					// then index the file and increase the document ID counter.
-					System.out.println("Indexing file " + file.getFileName());
+					//System.out.println("Indexing file " + file.getFileName());
 
 					fileNames.add(file.getFileName().toString());
 
