@@ -80,6 +80,8 @@ public class SearchOverviewController {
 					"Oh come on!!! You don't want me to return every document in the universe. Do you think you have time to read all of that");
 			alert.setContentText("Please enter the text that you want to search for in the corpus");
 			alert.showAndWait();
+			
+			userQuery.requestFocus();
 		} else {
 			// Call the Query Processing API to parse the query and get the
 			// tokens
@@ -118,6 +120,14 @@ public class SearchOverviewController {
 	@FXML
 	private void findStem() {
 		// Quits the application and close the window
+	}
+	
+	@FXML
+	private void onTextFieldClick() {
+		System.out.println("inside on textfield click");
+		System.out.println(userQuery.isEditable());
+		userQuery.setEditable(true);
+		userQuery.requestFocus();
 	}
 
 	public void createPositionalInvertedIndex(String dirPath) {

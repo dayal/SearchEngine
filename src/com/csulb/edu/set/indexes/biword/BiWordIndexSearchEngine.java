@@ -125,9 +125,11 @@ public class BiWordIndexSearchEngine {
 			// Read and process the first token from the file
 			TokenStream tokenStream = new SimpleTokenStream(title + " " + bodyContents);			
 			String token1 = tokenStream.hasNextToken() ? PorterStemmer.processToken(processWord(tokenStream.nextToken())) : "";
+			
+			// Loop to read the next tokens. Sends the pair of two token to be indexed
 			while (tokenStream.hasNextToken()) {
-				String token2 = tokenStream.nextToken();				
-				index.addTerm(token1 + PorterStemmer.processToken(processWord(token2)), docID);				
+				String token2 = PorterStemmer.processToken(processWord(tokenStream.nextToken()));				
+				index.addTerm(token1 + token2, docID);				
 				token1 = token2;
 			}
 		} catch (Exception e) {

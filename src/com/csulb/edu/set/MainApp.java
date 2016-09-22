@@ -181,7 +181,7 @@ public class MainApp extends Application {
 		try {
 			// Load root layout from fxml file.
 			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(MainApp.class.getResource("view/SearchOverview.fxml"));
+			loader.setLocation(MainApp.class.getResource("ui/view/SearchOverview.fxml"));
 			rootLayout = (AnchorPane) loader.load();
 
 			// Give the controller access to the main app.
