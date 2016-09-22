@@ -17,6 +17,12 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.csulb.edu.set.indexes.TokenStream;
+import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
+import com.csulb.edu.set.indexes.pii.PositionalPosting;
+import com.csulb.edu.set.queryparser.Query;
+import com.csulb.edu.set.queryparser.QueryLiteral;
+import com.csulb.edu.set.queryparser.QueryParser;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

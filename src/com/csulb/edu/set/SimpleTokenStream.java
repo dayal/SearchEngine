@@ -3,6 +3,8 @@ package com.csulb.edu.set;
 import java.io.*;
 import java.util.*;
 
+import com.csulb.edu.set.indexes.TokenStream;
+
 /**
  * Reads tokens one at a time from an input stream. Returns tokens with minimal
  * processing: removing all non-alphanumeric characters, and converting to

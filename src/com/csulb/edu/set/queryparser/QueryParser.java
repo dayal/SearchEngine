@@ -1,4 +1,4 @@
-package com.csulb.edu.set;
+package com.csulb.edu.set.queryparser;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;

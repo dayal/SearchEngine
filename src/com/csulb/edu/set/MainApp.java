@@ -4,12 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
-import com.csulb.edu.set.view.SearchOverviewController;
+import com.csulb.edu.set.ui.view.SearchOverviewController;
 
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventType;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -25,6 +27,7 @@ public class MainApp extends Application {
 
 	private Stage primaryStage;
 	private AnchorPane rootLayout;
+	private SearchOverviewController controller;
 
 	boolean isValidDirectory;
 	String dirPath;
@@ -79,12 +82,16 @@ public class MainApp extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
+		
+		
 		this.primaryStage = primaryStage;
 		this.primaryStage.setTitle("Search Engine");
-
+		
 		// Opens up a text input dialog box to prompt the user to enter the
 		// corpus directory path.
 		promptUserForDirectoryToIndex();
+
+		
 
 		// Now the index has been created. Initializing the search application
 		// window layout
@@ -101,20 +108,39 @@ public class MainApp extends Application {
 		dialog.setHeaderText("Kindly enter the path of the directory to index");
 		dialog.setContentText("Directory Path :");
 
-		// Perform some action on press of an ok button
-		/*
-		 * final Button ok = (Button)
-		 * dialog.getDialogPane().lookupButton(ButtonType.OK);
-		 * ok.addEventFilter(ActionEvent.ACTION, event -> System.out.println(
-		 * "OK was definitely pressed"));
-		 */
-
+		// Handles the cancel button action
 		final Button cancel = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
-		cancel.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-			System.out.println("Exiting platform now!!!");
-			Platform.exit();
+		cancel.addEventFilter(ActionEvent.ACTION, event -> {
+			this.isValidDirectory = true;
+			if (this.primaryStage != null && !this.primaryStage.isShowing()) {
+				System.out.println("Exiting platform now!!!");
+				Platform.exit();
+			}
 		});
-
+		
+		// Handles the cancel button action
+		/*final Button ok = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+		ok.addEventFilter(ActionEvent.ACTION, event -> {
+			Optional<String> result = null;
+			while (!isValidDirectory) {
+				result = dialog.showAndWait();
+				// The Java 8 way to get the response value (with lambda
+				// expression).
+				result.ifPresent(dir -> {
+					System.out.println("Directory entered : " + dir);
+					if ((new File(dir).isDirectory())) {
+						isValidDirectory = true;
+						if (this.primaryStage.isShowing() && this.controller != null) {
+							this.controller.createPositionalInvertedIndex(dir);
+						}
+					} else {
+						showInvalidDirectoryAlert();
+					}
+				});
+			}
+			dirPath = result.isPresent() ? result.get() : "";
+		});		*/
+		
 		Optional<String> result = null;
 		while (!isValidDirectory) {
 			result = dialog.showAndWait();
@@ -124,13 +150,16 @@ public class MainApp extends Application {
 				System.out.println("Directory entered : " + dir);
 				if ((new File(dir).isDirectory())) {
 					isValidDirectory = true;
+					if (this.primaryStage.isShowing() && this.controller != null) {
+						this.controller.createPositionalInvertedIndex(dir);
+					}
 				} else {
 					showInvalidDirectoryAlert();
 				}
 			});
 		}
-		
-		dirPath = result.get();
+		dirPath = result.isPresent() ? result.get() : "";
+		this.isValidDirectory = false;		
 	}
 
 	/**
@@ -156,10 +185,12 @@ public class MainApp extends Application {
 			rootLayout = (AnchorPane) loader.load();
 
 			// Give the controller access to the main app.
-			SearchOverviewController controller = loader.getController();
+			controller = loader.getController();
 			controller.setMainApp(this);
 			
-			controller.createPositionalInvertedIndex(dirPath);
+			if (dirPath != null) {
+				controller.createPositionalInvertedIndex(dirPath);
+			}			
 
 			// Show the scene containing the root layout.
 			Scene scene = new Scene(rootLayout);

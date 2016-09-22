@@ -5,6 +5,8 @@ import java.nio.file.*;
 import java.nio.file.attribute.*;
 import java.util.*;
 
+import com.csulb.edu.set.indexes.NaiveInvertedIndex;
+
 /**
  * A very simple search engine. Uses an inverted index over a folder of TXT
  * files.
