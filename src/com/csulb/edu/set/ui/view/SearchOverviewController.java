@@ -3,7 +3,7 @@ package com.csulb.edu.set.ui.view;
 import java.io.IOException;
 
 import com.csulb.edu.set.MainApp;
-import com.csulb.edu.set.PIndexSearchEngine;
+import com.csulb.edu.set.indexes.pii.PIndexSearchEngine;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 
 import javafx.fxml.FXML;

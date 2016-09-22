@@ -1,4 +1,4 @@
-package com.csulb.edu.set;
+package com.csulb.edu.set.indexes.pii;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.csulb.edu.set.PorterStemmer;
+import com.csulb.edu.set.SimpleTokenStream;
 import com.csulb.edu.set.indexes.TokenStream;
-import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
-import com.csulb.edu.set.indexes.pii.PositionalPosting;
 import com.csulb.edu.set.queryparser.Query;
 import com.csulb.edu.set.queryparser.QueryLiteral;
 import com.csulb.edu.set.queryparser.QueryParser;
