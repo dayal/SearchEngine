@@ -84,11 +84,8 @@ public class PIndexSearchEngine {
 				break;
 			}
 
-			List<Integer> docIds = runQueries(input, index);
 			System.out.println("files matching queries:");
-			for (int docId : docIds) {
-				System.out.println(fileNames.get(docId));
-			}
+			List<String> docIds = runQueries(input, index);
 		}
 		read.close();
 
@@ -260,15 +257,20 @@ public class PIndexSearchEngine {
 		}
 	}
 
-	private static List<Integer> runQueries(String queryInput, PositionalInvertedIndex index) {
+	private static List<String> runQueries(String queryInput, PositionalInvertedIndex index) {
 		List<Integer> docIds = new ArrayList<Integer>();
+		List<String> results = new ArrayList<String>();
 		List<Query> queries = QueryParser.parseQuery(queryInput);
 
 		for (Query query : queries) {
 			docIds = getUnion(docIds, getdocIdsMatchingQuery(query, index));
 		}
+		
+		for (int docId : docIds) {
+			results.add(fileNames.get(docId));
+		}
 
-		return docIds;
+		return results;
 	}
 
 	private static List<Integer> getdocIdsMatchingQuery(Query query, PositionalInvertedIndex index) {
