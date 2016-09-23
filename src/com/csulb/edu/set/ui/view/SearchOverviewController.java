@@ -1,19 +1,28 @@
 package com.csulb.edu.set.ui.view;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 import com.csulb.edu.set.MainApp;
 import com.csulb.edu.set.indexes.pii.PIndexSearchEngine;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
+import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Alert.AlertType;
 
 public class SearchOverviewController {
@@ -22,9 +31,12 @@ public class SearchOverviewController {
 	 * Holds the documents returned as result of query
 	 */
 	private ObservableList<String> documents;
+	private ObservableList<String> vocab;
+	boolean isValidDirectory;
+	private String dirPath;
 
 	@FXML
-	private ListView<String> documentsList;
+	private ListView<String> listView;
 
 	@FXML
 	private TextField userQuery;
@@ -61,9 +73,60 @@ public class SearchOverviewController {
 		//documentsList.getItems().addAll(mainApp.getDocuments());
 	}
 	
+	/**
+	 * Opens up a Text Dialog prompting the user to enter the path of the
+	 * directory to index
+	 */
+	public void promptUserForDirectoryToIndex() {
+		TextInputDialog dialog = new TextInputDialog("Enter the path here");
+		dialog.setTitle("Index A Directory");
+		dialog.setHeaderText("Kindly enter the path of the directory to index");
+		dialog.setContentText("Directory Path :");
+
+		// Handles the cancel button action
+		final Button cancel = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
+		cancel.addEventFilter(ActionEvent.ACTION, event -> {
+			this.isValidDirectory = true;
+			if (mainApp.getPrimaryStage() != null && !mainApp.getPrimaryStage().isShowing()) {
+				System.out.println("Exiting platform now!!!");
+				Platform.exit();
+			}
+		});
+		
+		Optional<String> result = null;
+		while (!isValidDirectory) {
+			result = dialog.showAndWait();
+			// The Java 8 way to get the response value (with lambda
+			// expression).
+			result.ifPresent(dir -> {
+				System.out.println("Directory entered : " + dir);
+				if ((new File(dir).isDirectory())) {
+					isValidDirectory = true;
+					createPositionalInvertedIndex(dir);
+				} else {
+					showInvalidDirectoryAlert();
+				}
+			});
+		}
+		//dirPath = result.isPresent() ? result.get() : "";
+		this.isValidDirectory = false;		
+	}
+
+	/**
+	 * Displays an error dialog box to indicate the user that the directory path
+	 * entered is invalid
+	 */
+	private void showInvalidDirectoryAlert() {
+		Alert alert = new Alert(AlertType.ERROR);
+		alert.setTitle("Error Dialog");
+		alert.setHeaderText(null);
+		alert.setContentText("Invalid Directory path! Please enter a valid directory");
+		alert.showAndWait();
+	}
+	
 	@FXML
 	private void indexNewDirectory() {
-		this.mainApp.promptUserForDirectoryToIndex();
+		promptUserForDirectoryToIndex();
 	}
 
 	/**
@@ -106,8 +169,8 @@ public class SearchOverviewController {
 			if (pInvertedIndex != null) {
 				if (!documents.isEmpty()) documents.clear();				
 				documents.addAll(PIndexSearchEngine.runQueries(queryString, pInvertedIndex));
-				documentsList.setItems(documents);;
-				documentsList.getItems().forEach(doc -> System.out.println(doc));				
+				listView.setItems(documents);;
+				listView.getItems().forEach(doc -> System.out.println(doc));				
 			}
 		}
 	}
@@ -126,7 +189,14 @@ public class SearchOverviewController {
 	 */
 	@FXML
 	private void printVocabulary() {
-		// Quits the application and close the window
+		System.out.println("Printing the vocabulary");
+		// Prints all the terms in the dictionary of corpus
+		List<String> vocabulary = Arrays.asList(pInvertedIndex.getDictionary());
+		vocabulary.forEach(word -> System.out.println(word));
+		
+		if (!vocab.isEmpty()) vocab.clear();		
+		vocab.addAll(vocabulary);
+		listView.setItems(vocab);
 	}
 
 	/**
@@ -146,6 +216,7 @@ public class SearchOverviewController {
 	}
 
 	public void createPositionalInvertedIndex(String dirPath) {
+		
 		System.out.println("In Controller :: Begin creation of index");
 		// Begin indexing of all the files present at the directory location
 
@@ -171,20 +242,7 @@ public class SearchOverviewController {
 
 		jsonBodyContents.setText(
 				"Library Services       Computers There are no public access computers in the park library, but researchers may use their own battery-powered laptop computers, provided that they do so without disturbing others in the library.  AV Equipment The library has a collection of videos, DVDs, and audiotapes reflecting park themes in its holdings. These materials may be utilized in the library.  The library has a microfilm reader and a limited collection of microfilm materials, primarily consisting of microfilm reels of the Records of the St. Louis County Court and St. Louis County Commissioners which correspond to the approximate dates that the St. Louis County government was housed in the Old Courthouse. Photocopying A fee of 15 cents per page is charged for photocopies for public researchers. Checks or cash are accepted as payment for copies. The park reserves the right to refuse to honor requests for photocopies of rare books or general materials if, in the Librarian's judgment, photocopying would be detrimental to the material or an infringement of copyright laws.  Scanning  Scans are 15 cents per page or image. Read our complete scanning policy here.  Library Catalog The library staff will be glad to provide you with information on our holdings. Researchers may also access our holdings online via a temporary website that allows the public to view cataloged titles within the National Park Service libraries. The link to the website is here.  1. Use the basic search to locate a book by title, author or subject. 2. An \"advanced\" search function is also available. There are many options within this search function. There are also several \"help\" links within the advanced search function.   This is a temporary search engine/website. Further developments will be coming in the next several months to make it easier to access NPS titles online. If you have any problem using the online catalog, please call the Jefferson National Expansion Memorial Library for assistance.   JNEM Library books do not circulate to the public, but researchers may use our books and other materials in the park library. The library does not participate in the inter-library program. The library can be reached Monday through Friday, 8 a.m. to 4:30 p.m. at (314) 655-1632.");
-		// Initialize the person table with the two columns.
-		/*
-		 * firstNameColumn.setCellValueFactory(cellData ->
-		 * cellData.getValue().firstNameProperty());
-		 * lastNameColumn.setCellValueFactory(cellData ->
-		 * cellData.getValue().lastNameProperty());
-		 * 
-		 * // Clear person details. showPersonDetails(null);
-		 * 
-		 * // Listen for selection changes and show the person details when //
-		 * changed. personTable.getSelectionModel().selectedItemProperty()
-		 * .addListener((observable, oldValue, newValue) ->
-		 * showPersonDetails(newValue));
-		 */
+		
 	}
 
 	/**
@@ -193,7 +251,8 @@ public class SearchOverviewController {
 	 */
 	public SearchOverviewController() {
 		documents = FXCollections.observableArrayList();
-		documentsList = new ListView<String>();
+		listView = new ListView<String>();
+		vocab = FXCollections.observableArrayList();
 	}
 
 	/**

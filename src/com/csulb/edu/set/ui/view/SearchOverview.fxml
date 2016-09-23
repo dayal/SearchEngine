@@ -14,7 +14,7 @@
 <?import javafx.scene.effect.Blend?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/8.0.72" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.csulb.edu.set.ui.view.SearchOverviewController">
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.csulb.edu.set.ui.view.SearchOverviewController">
    <children>
       <MenuBar>
         <menus>
@@ -42,11 +42,11 @@
          <children>
             <SplitPane dividerPositions="0.30267558528428096" layoutX="8.0" layoutY="14.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <items>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="428.0" prefWidth="226.0">
                      <children>
-                        <SplitPane dividerPositions="0.2601010101010101" orientation="VERTICAL" prefHeight="398.0" prefWidth="519.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <SplitPane dividerPositions="0.2601010101010101" maxHeight="-Infinity" maxWidth="-Infinity" minWidth="100.0" orientation="VERTICAL" prefHeight="398.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <items>
-                            <AnchorPane minHeight="50.0" minWidth="0.0" prefHeight="100.0" prefWidth="150.0">
+                            <AnchorPane maxHeight="-Infinity" minHeight="50.0" minWidth="0.0" prefHeight="70.0" prefWidth="100.0">
                                  <children>
                                     <TextField fx:id="userQuery" cache="true" layoutX="12.0" layoutY="14.0" promptText="Enter Your Query Here" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
                                        <cursor>
@@ -55,12 +55,12 @@
                                        <effect>
                                           <Blend />
                                        </effect></TextField>
-                                    <ButtonBar buttonMinWidth="45.0" layoutY="33.0" prefHeight="80.0" prefWidth="176.0" AnchorPane.bottomAnchor="-5.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="33.0">
+                                    <ButtonBar buttonMinWidth="45.0" layoutY="33.0" prefHeight="36.0" prefWidth="176.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="33.0">
                                       <buttons>
-                                        <Button fx:id="search" mnemonicParsing="false" onMouseClicked="#searchCorpus" text="Search" />
-                                          <Button fx:id="quitApplication" mnemonicParsing="false" onMouseClicked="#quitApplication" text="Quit" />
+                                        <Button fx:id="search" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#searchCorpus" prefHeight="24.0" prefWidth="12.0" text="Search" />
+                                          <Button fx:id="quitApplication" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#quitApplication" prefHeight="24.0" prefWidth="9.0" text="Quit" />
                                           <Button fx:id="findStem" mnemonicParsing="false" onAction="#findStem" onMouseClicked="#findStem" text="Find Stem" />
-                                          <Button fx:id="printVocab" mnemonicParsing="false" onMouseClicked="#printVocabulary" prefHeight="14.0" prefWidth="161.0" text="Print Vocabulary" />
+                                          <Button fx:id="printVocab" mnemonicParsing="false" onAction="#printVocabulary" onMouseClicked="#printVocabulary" prefHeight="14.0" prefWidth="161.0" text="Print Vocabulary" />
                                       </buttons>
                                        <padding>
                                           <Insets left="-5.0" />
@@ -70,7 +70,7 @@
                               </AnchorPane>
                             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="250.0" prefWidth="173.0">
                                  <children>
-                                    <ListView fx:id="documentsList" layoutX="14.0" prefHeight="290.0" prefWidth="336.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                    <ListView fx:id="listView" layoutX="14.0" prefHeight="290.0" prefWidth="336.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                  </children>
                               </AnchorPane>
                           </items>
