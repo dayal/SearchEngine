@@ -33,51 +33,10 @@ public class MainApp extends Application {
 	String dirPath;
 
 	/**
-	 * The data as an observable list of Persons.
-	 */
-	private ObservableList<String> documents = FXCollections.observableArrayList();
-
-	/**
 	 * Constructor
 	 */
 	public MainApp() {
-		// Add some sample data
-		documents.add("chapter1.txt");
-		documents.add("chapter2.txt");
-		documents.add("chapter5.txt");
-		documents.add("chapter10.txt");
-		documents.add("chapter23.txt");
-		documents.add("chapter56.txt");
-		documents.add("chapter90.txt");
-		documents.add("chapter5.txt");
-		documents.add("chapter65.txt");
-		documents.add("chapter1.txt");
-		documents.add("chapter2.txt");
-		documents.add("chapter5.txt");
-		documents.add("chapter10.txt");
-		documents.add("chapter23.txt");
-		documents.add("chapter56.txt");
-		documents.add("chapter90.txt");
-		documents.add("chapter5.txt");
-		documents.add("chapter65.txt");
-		documents.add("chapter1.txt");
-		documents.add("chapter2.txt");
-		documents.add("chapter5.txt");
-		documents.add("chapter10.txt");
-		documents.add("chapter23.txt");
-		documents.add("chapter56.txt");
-		documents.add("chapter90.txt");
-		documents.add("chapter5.txt");
-		documents.add("chapter65.txt");
-		documents.add("chapter1.txt");
-		documents.add("chapter2.txt");
-		documents.add("chapter5.txt");
-		documents.add("chapter10.txt");
-		documents.add("chapter23.txt");
-		documents.add("chapter56.txt");
-		documents.add("chapter90.txt");
-		documents.add("chapter5.txt");
-		documents.add("chapter65.txt");
+		
 	}
 
 	@Override
@@ -89,9 +48,7 @@ public class MainApp extends Application {
 		
 		// Opens up a text input dialog box to prompt the user to enter the
 		// corpus directory path.
-		promptUserForDirectoryToIndex();
-
-		
+		promptUserForDirectoryToIndex();		
 
 		// Now the index has been created. Initializing the search application
 		// window layout
@@ -230,14 +187,5 @@ public class MainApp extends Application {
 
 	public static void main(String[] args) {
 		Application.launch(args);
-	}
-
-	/**
-	 * Returns the data as an observable list of Persons.
-	 * 
-	 * @return
-	 */
-	public ObservableList<String> getDocuments() {
-		return documents;
 	}
 }

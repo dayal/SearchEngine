@@ -6,6 +6,8 @@ import com.csulb.edu.set.MainApp;
 import com.csulb.edu.set.indexes.pii.PIndexSearchEngine;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -15,9 +17,14 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 
 public class SearchOverviewController {
+	
+	/**
+	 * Holds the documents returned as result of query
+	 */
+	private ObservableList<String> documents;
 
 	@FXML
-	private ListView<String> documentsList = new ListView<String>();
+	private ListView<String> documentsList;
 
 	@FXML
 	private TextField userQuery;
@@ -51,7 +58,7 @@ public class SearchOverviewController {
 		this.mainApp = mainApp;
 
 		// Add observable list data to the table
-		documentsList.getItems().addAll(mainApp.getDocuments());
+		//documentsList.getItems().addAll(mainApp.getDocuments());
 	}
 	
 	@FXML
@@ -94,6 +101,14 @@ public class SearchOverviewController {
 			// Apply all the operations and return the list of chapters and
 			// store it
 			// in documentsList variable
+			System.out.println("Searching for "+queryString);
+			
+			if (pInvertedIndex != null) {
+				if (!documents.isEmpty()) documents.clear();				
+				documents.addAll(PIndexSearchEngine.runQueries(queryString, pInvertedIndex));
+				documentsList.setItems(documents);;
+				documentsList.getItems().forEach(doc -> System.out.println(doc));				
+			}
 		}
 	}
 
@@ -177,6 +192,8 @@ public class SearchOverviewController {
 	 * method.
 	 */
 	public SearchOverviewController() {
+		documents = FXCollections.observableArrayList();
+		documentsList = new ListView<String>();
 	}
 
 	/**

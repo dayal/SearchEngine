@@ -258,6 +258,7 @@ public class PIndexSearchEngine {
 	}
 
 	public static List<String> runQueries(String queryInput, PositionalInvertedIndex index) {
+		System.out.println("Running the query");
 		List<Integer> docIds = new ArrayList<Integer>();
 		List<String> results = new ArrayList<String>();
 		List<Query> queries = QueryParser.parseQuery(queryInput);
