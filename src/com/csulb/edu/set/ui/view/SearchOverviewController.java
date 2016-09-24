@@ -2,6 +2,7 @@ package com.csulb.edu.set.ui.view;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.channels.SelectionKey;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +21,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionModel;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.control.Alert.AlertType;
 
 public class SearchOverviewController {
@@ -54,7 +57,7 @@ public class SearchOverviewController {
 	private Button printVocab;
 
 	@FXML
-	TextArea jsonBodyContents = new TextArea();
+	private TextArea jsonBodyContents;
 
 	private PositionalInvertedIndex pInvertedIndex;
 
@@ -68,9 +71,6 @@ public class SearchOverviewController {
 	 */
 	public void setMainApp(MainApp mainApp) {
 		this.mainApp = mainApp;
-
-		// Add observable list data to the table
-		//documentsList.getItems().addAll(mainApp.getDocuments());
 	}
 	
 	/**
@@ -102,6 +102,7 @@ public class SearchOverviewController {
 				System.out.println("Directory entered : " + dir);
 				if ((new File(dir).isDirectory())) {
 					isValidDirectory = true;
+					this.dirPath = dir;
 					createPositionalInvertedIndex(dir);
 				} else {
 					showInvalidDirectoryAlert();
@@ -238,10 +239,16 @@ public class SearchOverviewController {
 	 */
 	@FXML
 	private void initialize() {
-		jsonBodyContents = new TextArea();
-
-		jsonBodyContents.setText(
-				"Library Services       Computers There are no public access computers in the park library, but researchers may use their own battery-powered laptop computers, provided that they do so without disturbing others in the library.  AV Equipment The library has a collection of videos, DVDs, and audiotapes reflecting park themes in its holdings. These materials may be utilized in the library.  The library has a microfilm reader and a limited collection of microfilm materials, primarily consisting of microfilm reels of the Records of the St. Louis County Court and St. Louis County Commissioners which correspond to the approximate dates that the St. Louis County government was housed in the Old Courthouse. Photocopying A fee of 15 cents per page is charged for photocopies for public researchers. Checks or cash are accepted as payment for copies. The park reserves the right to refuse to honor requests for photocopies of rare books or general materials if, in the Librarian's judgment, photocopying would be detrimental to the material or an infringement of copyright laws.  Scanning  Scans are 15 cents per page or image. Read our complete scanning policy here.  Library Catalog The library staff will be glad to provide you with information on our holdings. Researchers may also access our holdings online via a temporary website that allows the public to view cataloged titles within the National Park Service libraries. The link to the website is here.  1. Use the basic search to locate a book by title, author or subject. 2. An \"advanced\" search function is also available. There are many options within this search function. There are also several \"help\" links within the advanced search function.   This is a temporary search engine/website. Further developments will be coming in the next several months to make it easier to access NPS titles online. If you have any problem using the online catalog, please call the Jefferson National Expansion Memorial Library for assistance.   JNEM Library books do not circulate to the public, but researchers may use our books and other materials in the park library. The library does not participate in the inter-library program. The library can be reached Monday through Friday, 8 a.m. to 4:30 p.m. at (314) 655-1632.");
+		
+		listView.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+			if (event.getClickCount() == 2) {
+				SelectionModel<String> selectionModel = listView.getSelectionModel();
+				String itemSelected = selectionModel.getSelectedItem();
+				if (itemSelected.contains("json")) {
+					this.jsonBodyContents.setText(PIndexSearchEngine.getDocumentText(dirPath+"\\"+itemSelected));
+				}
+			}			
+		});
 		
 	}
 
@@ -253,6 +260,7 @@ public class SearchOverviewController {
 		documents = FXCollections.observableArrayList();
 		listView = new ListView<String>();
 		vocab = FXCollections.observableArrayList();
+		jsonBodyContents = new TextArea();
 	}
 
 	/**

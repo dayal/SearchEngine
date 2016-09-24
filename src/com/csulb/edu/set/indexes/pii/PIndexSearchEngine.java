@@ -418,5 +418,28 @@ public class PIndexSearchEngine {
 	private static String processWord(String next) {
 		return next.replaceAll("\\W", "").toLowerCase();
 	}
+	
+	public static String getDocumentText(String docLocation) {
+		
+		Reader reader = null;
+		try {
+			reader = new FileReader(docLocation);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		JsonParser jsonParser = new JsonParser();
+		JsonElement element = jsonParser.parse(reader);
+		
+		String bodyContents = "";
+
+		if (element.isJsonObject()) {
+			JsonObject doc = element.getAsJsonObject();
+			bodyContents = doc.get("body").getAsString();
+		}
+		
+		return bodyContents;
+		
+	}
 
 }

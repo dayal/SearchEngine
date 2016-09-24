@@ -62,7 +62,6 @@ public class PositionalInvertedIndex {
 
 	public int getTermCount() {
 		// TO-DO: return the number of terms in the index.
-
 		return this.pInvertedIndex.keySet().size();
 	}
 
