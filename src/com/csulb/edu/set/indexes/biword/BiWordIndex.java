@@ -23,7 +23,9 @@ public class BiWordIndex {
 		// not already contain the docID.
 		if (biWordIndex.containsKey(term)) {
 			List<Integer> docIDs = biWordIndex.get(term);
-			if (!docIDs.contains(documentID)) {
+			
+			// We need to compare the new document id only with the last document id added in the posting list till now.
+			if (docIDs.get(docIDs.size() - 1) != documentID) {
 				docIDs.add(documentID);
 			}
 		} else {

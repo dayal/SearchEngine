@@ -7,7 +7,6 @@ package com.csulb.edu.set.indexes.pii;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 public class PositionalInvertedIndex {
@@ -27,15 +26,21 @@ public class PositionalInvertedIndex {
 		// not already contain the docID.
 		if (this.pInvertedIndex.containsKey(term)) {
 			
-			boolean isDocPresent = false;
-			
-			for (PositionalPosting posting : this.pInvertedIndex.get(term)) {
+			//boolean isDocPresent = false;			
+			/*for (PositionalPosting posting : this.pInvertedIndex.get(term)) {
 				if (posting.getDocumentId() == documentID) {
 					posting.getPositions().add(pos);
 					isDocPresent = true;
 				}			
-			}			
-			if (!isDocPresent) {
+			}*/
+			
+			List<PositionalPosting> positionalPostingList = this.pInvertedIndex.get(term);
+			PositionalPosting lastPosting = positionalPostingList.get(positionalPostingList.size() - 1);
+			
+			if (lastPosting.getDocumentId() == documentID) {
+				lastPosting.getPositions().add(pos);
+				//isDocPresent = true;
+			} else {
 				PositionalPosting newPosting = new PositionalPosting();			
 				newPosting.setDocumentId(documentID);
 				newPosting.getPositions().add(pos);			
