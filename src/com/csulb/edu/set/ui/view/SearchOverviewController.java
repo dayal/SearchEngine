@@ -2,16 +2,15 @@ package com.csulb.edu.set.ui.view;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.channels.SelectionKey;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import com.csulb.edu.set.MainApp;
+import com.csulb.edu.set.PorterStemmer;
 import com.csulb.edu.set.indexes.pii.PIndexSearchEngine;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
-import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
-
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,6 +18,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionModel;
@@ -26,10 +26,11 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.DirectoryChooser;
 import javafx.scene.control.Alert.AlertType;
 
 public class SearchOverviewController {
-	
+
 	/**
 	 * Holds the documents returned as result of query
 	 */
@@ -72,7 +73,7 @@ public class SearchOverviewController {
 	public void setMainApp(MainApp mainApp) {
 		this.mainApp = mainApp;
 	}
-	
+
 	/**
 	 * Opens up a Text Dialog prompting the user to enter the path of the
 	 * directory to index
@@ -82,6 +83,21 @@ public class SearchOverviewController {
 		dialog.setTitle("Index A Directory");
 		dialog.setHeaderText("Kindly enter the path of the directory to index");
 		dialog.setContentText("Directory Path :");
+		
+		final ButtonType browseButton = new ButtonType("Browse", ButtonData.OTHER);
+		dialog.getDialogPane().getButtonTypes().add(browseButton);
+		
+		final Button browse = (Button) dialog.getDialogPane().lookupButton(browseButton);		
+		browse.addEventFilter(ActionEvent.ACTION, event -> {
+			DirectoryChooser chooser = new DirectoryChooser();
+		    chooser.setInitialDirectory(new File(System.getProperty("user.home")));
+		    File dir = chooser.showDialog(this.mainApp.getPrimaryStage());
+		    if (dir == null) {
+		        return;
+		    }
+		    this.dirPath = Paths.get(dir.getAbsolutePath()).toString();
+		    dialog.getEditor().setText(this.dirPath != null ? this.dirPath : "");
+		});
 
 		// Handles the cancel button action
 		final Button cancel = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
@@ -92,7 +108,7 @@ public class SearchOverviewController {
 				Platform.exit();
 			}
 		});
-		
+
 		Optional<String> result = null;
 		while (!isValidDirectory) {
 			result = dialog.showAndWait();
@@ -109,8 +125,8 @@ public class SearchOverviewController {
 				}
 			});
 		}
-		//dirPath = result.isPresent() ? result.get() : "";
-		this.isValidDirectory = false;		
+		// dirPath = result.isPresent() ? result.get() : "";
+		this.isValidDirectory = false;
 	}
 
 	/**
@@ -124,7 +140,7 @@ public class SearchOverviewController {
 		alert.setContentText("Invalid Directory path! Please enter a valid directory");
 		alert.showAndWait();
 	}
-	
+
 	@FXML
 	private void indexNewDirectory() {
 		promptUserForDirectoryToIndex();
@@ -151,7 +167,7 @@ public class SearchOverviewController {
 					"Oh come on!!! You don't want me to return every document in the universe. Do you think you have time to read all of that");
 			alert.setContentText("Please enter the text that you want to search for in the corpus");
 			alert.showAndWait();
-			
+
 			userQuery.requestFocus();
 		} else {
 			// Call the Query Processing API to parse the query and get the
@@ -165,13 +181,14 @@ public class SearchOverviewController {
 			// Apply all the operations and return the list of chapters and
 			// store it
 			// in documentsList variable
-			System.out.println("Searching for "+queryString);
-			
+			System.out.println("Searching for " + queryString);
+
 			if (pInvertedIndex != null) {
-				if (!documents.isEmpty()) documents.clear();				
+				if (!documents.isEmpty())
+					documents.clear();
 				documents.addAll(PIndexSearchEngine.runQueries(queryString, pInvertedIndex));
-				listView.setItems(documents);;
-				listView.getItems().forEach(doc -> System.out.println(doc));				
+				listView.setItems(documents);
+				listView.getItems().forEach(doc -> System.out.println(doc));
 			}
 		}
 	}
@@ -194,8 +211,9 @@ public class SearchOverviewController {
 		// Prints all the terms in the dictionary of corpus
 		List<String> vocabulary = Arrays.asList(pInvertedIndex.getDictionary());
 		vocabulary.forEach(word -> System.out.println(word));
-		
-		if (!vocab.isEmpty()) vocab.clear();		
+
+		if (!vocab.isEmpty())
+			vocab.clear();
 		vocab.addAll(vocabulary);
 		listView.setItems(vocab);
 	}
@@ -205,9 +223,25 @@ public class SearchOverviewController {
 	 */
 	@FXML
 	private void findStem() {
-		// Quits the application and close the window
+		System.out.println("Findnig the stem");
+		
+		// Fetch the word entered by the user in the textbox 
+		String word = userQuery.getText();
+		if (word == null) {
+			// TO-DO :: Show an error box prompting user to enter a word to stem
+		} else {
+			Alert stemInfo = new Alert(AlertType.INFORMATION);
+			stemInfo.setTitle("Finding the stem using Porter-Stemmer Algorithm");
+			stemInfo.setHeaderText("Below is the stem : "+word);
+			
+			// Call PorterStemmer
+			String stem = PorterStemmer.processToken(word);
+			
+			stemInfo.setContentText(stem);
+			stemInfo.showAndWait();
+		}
 	}
-	
+
 	@FXML
 	private void onTextFieldClick() {
 		System.out.println("inside on textfield click");
@@ -217,7 +251,7 @@ public class SearchOverviewController {
 	}
 
 	public void createPositionalInvertedIndex(String dirPath) {
-		
+
 		System.out.println("In Controller :: Begin creation of index");
 		// Begin indexing of all the files present at the directory location
 
@@ -239,17 +273,17 @@ public class SearchOverviewController {
 	 */
 	@FXML
 	private void initialize() {
-		
+
 		listView.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
 			if (event.getClickCount() == 2) {
 				SelectionModel<String> selectionModel = listView.getSelectionModel();
 				String itemSelected = selectionModel.getSelectedItem();
 				if (itemSelected.contains("json")) {
-					this.jsonBodyContents.setText(PIndexSearchEngine.getDocumentText(dirPath+"\\"+itemSelected));
+					this.jsonBodyContents.setText(PIndexSearchEngine.getDocumentText(dirPath + "\\" + itemSelected));
 				}
-			}			
+			}
 		});
-		
+
 	}
 
 	/**
