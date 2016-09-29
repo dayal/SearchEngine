@@ -1,9 +1,11 @@
-package com.csulb.edu.set.queryparser;
+package com.csulb.edu.set.query;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class QueryParser {
+	// TODO: list all the terms we use
+	
 	// private static final String singleToken = "[a-zA-Z0-9]+";
 	// private static final String phrase = "\"([a-zA-Z0-9]+ )*[a-zA-Z0-9]+\"";
 	// private static final String literal = singleToken + "|" + phrase;

@@ -1,16 +1,21 @@
 package com.csulb.edu.set.ui.view;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.nio.channels.SelectionKey;
+import java.io.Reader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import com.csulb.edu.set.MainApp;
-import com.csulb.edu.set.indexes.pii.PIndexSearchEngine;
+import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
-import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
+import com.csulb.edu.set.query.QueryRunner;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -18,6 +23,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
@@ -26,7 +32,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.control.Alert.AlertType;
 
 public class SearchOverviewController {
 	
@@ -60,6 +65,8 @@ public class SearchOverviewController {
 	private TextArea jsonBodyContents;
 
 	private PositionalInvertedIndex pInvertedIndex;
+	
+	private BiWordIndex biWordIndex;
 
 	// Reference to the main application.
 	private MainApp mainApp;
@@ -103,7 +110,7 @@ public class SearchOverviewController {
 				if ((new File(dir).isDirectory())) {
 					isValidDirectory = true;
 					this.dirPath = dir;
-					createPositionalInvertedIndex(dir);
+					createIndexes(dir);
 				} else {
 					showInvalidDirectoryAlert();
 				}
@@ -167,9 +174,9 @@ public class SearchOverviewController {
 			// in documentsList variable
 			System.out.println("Searching for "+queryString);
 			
-			if (pInvertedIndex != null) {
+			if (pInvertedIndex != null && biWordIndex != null) {
 				if (!documents.isEmpty()) documents.clear();				
-				documents.addAll(PIndexSearchEngine.runQueries(queryString, pInvertedIndex));
+				documents.addAll(QueryRunner.runQueries(queryString, pInvertedIndex, biWordIndex));
 				listView.setItems(documents);;
 				listView.getItems().forEach(doc -> System.out.println(doc));				
 			}
@@ -216,7 +223,7 @@ public class SearchOverviewController {
 		userQuery.requestFocus();
 	}
 
-	public void createPositionalInvertedIndex(String dirPath) {
+	public void createIndexes(String dirPath) {
 		
 		System.out.println("In Controller :: Begin creation of index");
 		// Begin indexing of all the files present at the directory location
@@ -226,8 +233,9 @@ public class SearchOverviewController {
 		// If the user clicks on the search text box, show him a message saying
 		// :: Index creation in progress
 		try {
-			pInvertedIndex = PIndexSearchEngine.createPositionalInvertedIndex(dirPath);
-			System.out.println("Positional Inverted Index created successfully");
+			pInvertedIndex = new PositionalInvertedIndex(dirPath);
+			biWordIndex = new BiWordIndex(dirPath);
+			System.out.println("Indexes created successfully");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -245,7 +253,7 @@ public class SearchOverviewController {
 				SelectionModel<String> selectionModel = listView.getSelectionModel();
 				String itemSelected = selectionModel.getSelectedItem();
 				if (itemSelected.contains("json")) {
-					this.jsonBodyContents.setText(PIndexSearchEngine.getDocumentText(dirPath+"\\"+itemSelected));
+					this.jsonBodyContents.setText(getDocumentText(dirPath+"\\"+itemSelected));
 				}
 			}			
 		});
@@ -265,12 +273,38 @@ public class SearchOverviewController {
 
 	/**
 	 * @return the pInvertedIndex
+	 * 
 	 */
+	// Where is this used?
 	public PositionalInvertedIndex getpInvertedIndex() {
 		if (pInvertedIndex == null) {
 			throw new NullPointerException("pInvertedIndex is null");
 		}
 		return pInvertedIndex;
+	}
+	
+	// TODO: put this somewhere else
+	private static String getDocumentText(String docLocation) {
+		
+		Reader reader = null;
+		try {
+			reader = new FileReader(docLocation);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		JsonParser jsonParser = new JsonParser();
+		JsonElement element = jsonParser.parse(reader);
+		
+		String bodyContents = "";
+
+		if (element.isJsonObject()) {
+			JsonObject doc = element.getAsJsonObject();
+			bodyContents = doc.get("body").getAsString();
+		}
+		
+		return bodyContents;
+		
 	}
 
 }

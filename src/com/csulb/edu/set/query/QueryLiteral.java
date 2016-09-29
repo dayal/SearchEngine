@@ -1,4 +1,4 @@
-package com.csulb.edu.set.queryparser;
+package com.csulb.edu.set.query;
 import java.util.List;
 
 public class QueryLiteral {
