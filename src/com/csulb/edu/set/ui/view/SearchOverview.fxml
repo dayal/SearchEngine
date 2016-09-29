@@ -58,8 +58,7 @@
                                     <ButtonBar buttonMinWidth="45.0" layoutY="33.0" prefHeight="36.0" prefWidth="176.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="33.0">
                                       <buttons>
                                         <Button fx:id="search" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#searchCorpus" prefHeight="24.0" prefWidth="12.0" text="Search" />
-                                          <Button fx:id="quitApplication" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#quitApplication" prefHeight="24.0" prefWidth="9.0" text="Quit" />
-                                          <Button fx:id="findStem" mnemonicParsing="false" onAction="#findStem" onMouseClicked="#findStem" text="Find Stem" />
+                                          <Button fx:id="findStem" mnemonicParsing="false" onAction="#findStem" text="Find Stem" />
                                           <Button fx:id="printVocab" mnemonicParsing="false" onAction="#printVocabulary" onMouseClicked="#printVocabulary" prefHeight="14.0" prefWidth="161.0" text="Print Vocabulary" />
                                       </buttons>
                                        <padding>
