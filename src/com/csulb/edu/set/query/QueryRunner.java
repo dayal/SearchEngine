@@ -83,7 +83,7 @@ public class QueryRunner {
 										currentPostingsPositions);
 								if (!newPostingsPositions.isEmpty()) {
 									newPostings.add(new PositionalPosting(postings.get(j).getDocumentId(),
-											getIntersection(postingsPositions, currentPostingsPositions)));
+											newPostingsPositions));
 								}
 								j++;
 								k++;
