@@ -57,9 +57,6 @@ public class SearchOverviewController {
 	private Button search;
 
 	@FXML
-	private Button quitApplication;
-
-	@FXML
 	private Button findStem;
 
 	@FXML
@@ -161,7 +158,6 @@ public class SearchOverviewController {
 	 */
 	@FXML
 	private void searchCorpus() {
-
 		// Get the query entered by the user in the query text box in the
 		// queryString variable
 		String queryString = userQuery.getText();
@@ -204,14 +200,6 @@ public class SearchOverviewController {
 	}
 
 	/**
-	 * Called when the user wants to quit the application
-	 */
-	@FXML
-	private void quitApplication() {
-		// Quits the application and close the window
-	}
-
-	/**
 	 * Prints the vocabulary i.e all the terms in the vocabulary of the corpus,
 	 * one item per line
 	 */
@@ -222,8 +210,9 @@ public class SearchOverviewController {
 		List<String> vocabulary = Arrays.asList(pInvertedIndex.getDictionary());
 		vocabulary.forEach(word -> System.out.println(word));
 
-		if (!vocab.isEmpty())
+		if (!vocab.isEmpty()) {
 			vocab.clear();
+		}
 		vocab.addAll(vocabulary);
 		listView.setItems(vocab);
 	}
@@ -242,7 +231,7 @@ public class SearchOverviewController {
 		} else {
 			Alert stemInfo = new Alert(AlertType.INFORMATION);
 			stemInfo.setTitle("Finding the stem using Porter-Stemmer Algorithm");
-			stemInfo.setHeaderText("Below is the stem : "+word);
+			stemInfo.setHeaderText("Below is the stem of the word: "+word);
 			
 			// Call PorterStemmer
 			String stem = PorterStemmer.processToken(word);

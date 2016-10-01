@@ -50,7 +50,7 @@
                                  <children>
                                     <TextField fx:id="userQuery" cache="true" layoutX="12.0" layoutY="14.0" promptText="Enter Your Query Here" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
                                        <cursor>
-                                          <Cursor fx:constant="NONE" />
+                                          <Cursor fx:constant="TEXT" />
                                        </cursor>
                                        <effect>
                                           <Blend />

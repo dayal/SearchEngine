@@ -24,14 +24,18 @@ public class QueryParser {
 			while (i < literalStrings.length) {
 				QueryLiteral queryLiteral = new QueryLiteral();
 				queryLiteral.setTokens(new ArrayList<String>());
+				
+				// Checking if this token has a '-' sign in front of it in which case it will be a NOT query
 				if (literalStrings[i].startsWith("-")) {
 					queryLiteral.setPositive(false);
 					// remove "-"
-					literalStrings[i] = literalStrings[i].substring(1);
+					literalStrings[i] = literalStrings[i].substring(1).trim();
 				} else {
 					queryLiteral.setPositive(true);
 				}
 				
+				// Checks if the token is actually a phrase. 
+				// Its a phrase if it is enclosed within " "
 				if (literalStrings[i].startsWith("\"")) {
 					queryLiteral.setPhrase(true);
 					queryLiteral.getTokens().add(literalStrings[i].substring(1));
@@ -42,6 +46,7 @@ public class QueryParser {
 						i++;
 					}
 					
+					// Adding the last token of the phrase to the list of tokens
 					queryLiteral.getTokens().add(literalStrings[i].substring(0, literalStrings[i].length() - 1));
 					i++;
 				} else {
