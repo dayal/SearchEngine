@@ -4,11 +4,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.csulb.edu.set.exception.InvalidQueryException;
+import com.csulb.edu.set.utils.Utils;
 
 public class QueryParser {
 	// TODO: list all the terms we use
 	
-	 private static final String singleToken = "-?[a-zA-Z0-9]((-?[^\" ]*)*[a-zA-Z0-9])?";
+	 private static final String singleToken = ".+";
 	 private static final String phrase = "\"(" + singleToken + " +)*(" + singleToken + ")\"";
 	 private static final String literal = singleToken + "|" + phrase;
 	 private static final String queries = "((" + literal + ") +)*" + "(" +
@@ -47,24 +48,24 @@ public class QueryParser {
 					queryLiteral.setPhrase(true);
 					if (literalStrings[i].endsWith("\"")) {
 						// phrase with only one token
-						queryLiteral.getTokens().add(literalStrings[i].substring(1, literalStrings[i].length() - 1));
+						queryLiteral.getTokens().add(Utils.processWord(literalStrings[i].substring(1, literalStrings[i].length() - 1)));
 					} else {
 						// phrase with more than one tokens
-						queryLiteral.getTokens().add(literalStrings[i].substring(1));
+						queryLiteral.getTokens().add(Utils.processWord(literalStrings[i].substring(1)));
 						i++;
 
 						while (!literalStrings[i].endsWith("\"")) {
-							queryLiteral.getTokens().add(literalStrings[i]);
+							queryLiteral.getTokens().add(Utils.processWord(literalStrings[i]));
 							i++;
 						}
 						
 						// Adding the last token of the phrase to the list of tokens
-						queryLiteral.getTokens().add(literalStrings[i].substring(0, literalStrings[i].length() - 1));
+						queryLiteral.getTokens().add(Utils.processWord(literalStrings[i].substring(0, literalStrings[i].length() - 1)));
 					}
 					i++;
 				} else {
 					queryLiteral.setPhrase(false);
-					queryLiteral.getTokens().add(literalStrings[i]);
+					queryLiteral.getTokens().add(Utils.processWord(literalStrings[i]));
 					i++;
 				}
 				

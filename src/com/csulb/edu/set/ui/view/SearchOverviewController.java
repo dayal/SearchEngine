@@ -299,6 +299,7 @@ public class SearchOverviewController {
 
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
 					// only process .json files
+					System.out.println(file.toString());
 					if (file.toString().endsWith(".json")) {
 						// we have found a .json file; add its name to the fileName
 						// list,
