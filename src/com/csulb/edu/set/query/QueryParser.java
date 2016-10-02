@@ -8,14 +8,14 @@ import exception.InvalidQueryException;
 public class QueryParser {
 	// TODO: list all the terms we use
 	
-	 private static final String singleToken = "-?[a-zA-Z0-9](-?[a-zA-Z0-9]+)";
-	 private static final String phrase = "(-?[a-zA-Z0-9](-?[a-zA-Z0-9]+?)* )*(-?[a-zA-Z0-9](-?[a-zA-Z0-9]+?)*)";
+	 private static final String singleToken = "-?[a-zA-Z0-9]((-?[^\" ]*)*[a-zA-Z0-9])?";
+	 private static final String phrase = "\" + (" + singleToken + ")*(" + singleToken + ")\"";
 	 private static final String literal = singleToken + "|" + phrase;
-	 private static final String query = "((" + literal + ") )*" + "(" +
+	 private static final String queries = "((" + literal + ") )*" + "(" +
 	 literal + ")";
 
 	public static List<Query> parseQuery(String queryInput) throws InvalidQueryException {
-		if (!queryInput.matches(query)) {
+		if (!queryInput.matches(queries)) {
 			throw new InvalidQueryException();
 		}
 		
@@ -41,19 +41,25 @@ public class QueryParser {
 				}
 				
 				// Checks if the token is actually a phrase. 
-				// Its a phrase if it is enclosed within " "
+				// It's a phrase if it is enclosed within " "
 				if (literalStrings[i].startsWith("\"")) {
 					queryLiteral.setPhrase(true);
-					queryLiteral.getTokens().add(literalStrings[i].substring(1));
-					i++;
-
-					while (!literalStrings[i].endsWith("\"")) {
-						queryLiteral.getTokens().add(literalStrings[i]);
+					if (literalStrings[i].endsWith("\"")) {
+						// phrase with only one token
+						queryLiteral.getTokens().add(literalStrings[i].substring(1, literalStrings[i].length() - 1));
+					} else {
+						// phrase with more than one tokens
+						queryLiteral.getTokens().add(literalStrings[i].substring(1));
 						i++;
+
+						while (!literalStrings[i].endsWith("\"")) {
+							queryLiteral.getTokens().add(literalStrings[i]);
+							i++;
+						}
+						
+						// Adding the last token of the phrase to the list of tokens
+						queryLiteral.getTokens().add(literalStrings[i].substring(0, literalStrings[i].length() - 1));
 					}
-					
-					// Adding the last token of the phrase to the list of tokens
-					queryLiteral.getTokens().add(literalStrings[i].substring(0, literalStrings[i].length() - 1));
 					i++;
 				} else {
 					queryLiteral.setPhrase(false);
