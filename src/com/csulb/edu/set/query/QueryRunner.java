@@ -5,19 +5,18 @@ import java.util.List;
 
 import com.csulb.edu.set.PorterStemmer;
 import com.csulb.edu.set.exception.InvalidQueryException;
-import com.csulb.edu.set.indexes.Index;
 import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
+import com.csulb.edu.set.utils.Utils;
 
 public class QueryRunner {
 
 	// run the list of queries (eg. A + B + C)
-	public static List<String> runQueries(String queryInput, PositionalInvertedIndex pInvertedIndex,
+	public static List<Integer> runQueries(String queryInput, PositionalInvertedIndex pInvertedIndex,
 			BiWordIndex biWordIndex) throws InvalidQueryException {
 		System.out.println("Running the query");
 		List<Integer> docIds = new ArrayList<Integer>();
-		List<String> results = new ArrayList<String>();
 		// parse String queries into a list of query objects
 		List<Query> queries = QueryParser.parseQuery(queryInput);
 
@@ -25,11 +24,7 @@ public class QueryRunner {
 			docIds = getUnion(docIds, getdocIdsMatchingQuery(query, pInvertedIndex, biWordIndex));
 		}
 
-		for (int docId : docIds) {
-			results.add(pInvertedIndex.getFileNames().get(docId));
-		}
-
-		return results;
+		return docIds;
 	}
 
 	private static List<Integer> getdocIdsMatchingQuery(Query query, PositionalInvertedIndex pInvertedIndex,
@@ -42,7 +37,7 @@ public class QueryRunner {
 			if (!queryLiteral.isPhrase()) {
 				// use positional inverted index
 				List<PositionalPosting> positionalPostings = pInvertedIndex
-						.getPostings(PorterStemmer.processToken(Index.removeHyphens(Index.processWord(queryLiteral.getTokens().get(0)))));
+						.getPostings(PorterStemmer.processToken(Utils.removeHyphens(Utils.processWord(queryLiteral.getTokens().get(0)))));
 				if (positionalPostings != null) {
 					for (PositionalPosting positionalPosting : positionalPostings) {
 						docIds.add(positionalPosting.getDocumentId());
@@ -50,8 +45,8 @@ public class QueryRunner {
 				}
 			} else if (queryLiteral.isPhrase() && queryLiteral.getTokens().size() == 2) {
 				// use bi-word index
-				List<Integer> postings = biWordIndex.getPostings(PorterStemmer.processToken(Index.processWord(queryLiteral.getTokens().get(0)))
-						+ PorterStemmer.processToken(Index.removeHyphens(Index.processWord(queryLiteral.getTokens().get(1)))));
+				List<Integer> postings = biWordIndex.getPostings(PorterStemmer.processToken(Utils.processWord(queryLiteral.getTokens().get(0)))
+						+ PorterStemmer.processToken(Utils.removeHyphens(Utils.processWord(queryLiteral.getTokens().get(1)))));
 				if (postings != null) {
 					docIds.addAll(postings);
 				}
@@ -61,7 +56,7 @@ public class QueryRunner {
 				for (int i = 0; i < queryLiteral.getTokens().size(); i++) {
 					String token = queryLiteral.getTokens().get(i);
 					List<PositionalPosting> currentPostings = pInvertedIndex
-							.getPostings(Index.removeHyphens(PorterStemmer.processToken(Index.processWord(token))));
+							.getPostings(Utils.removeHyphens(PorterStemmer.processToken(Utils.processWord(token))));
 					if (postings.isEmpty()) {
 						postings = currentPostings;
 					} else {

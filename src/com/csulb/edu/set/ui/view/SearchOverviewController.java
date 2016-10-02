@@ -1,11 +1,14 @@
 package com.csulb.edu.set.ui.view;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -14,12 +17,11 @@ import java.util.Optional;
 import com.csulb.edu.set.MainApp;
 import com.csulb.edu.set.PorterStemmer;
 import com.csulb.edu.set.exception.InvalidQueryException;
+import com.csulb.edu.set.indexes.TokenStream;
 import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.query.QueryRunner;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.csulb.edu.set.utils.Utils;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -49,10 +51,10 @@ public class SearchOverviewController {
 	private ObservableList<String> vocab;
 	boolean isValidDirectory;
 	private String dirPath;
-	
+
 	@FXML
 	private Label corpusVocabSize;
-	
+
 	@FXML
 	private Label numberOfDocsIndexed;
 
@@ -75,8 +77,10 @@ public class SearchOverviewController {
 	private TextArea jsonBodyContents;
 
 	private PositionalInvertedIndex pInvertedIndex;
-	
+
 	private BiWordIndex biWordIndex;
+	
+	private List<String> fileNames = new ArrayList<String>();
 
 	// Reference to the main application.
 	private MainApp mainApp;
@@ -99,20 +103,20 @@ public class SearchOverviewController {
 		dialog.setTitle("Index A Directory");
 		dialog.setHeaderText("Kindly enter the path of the directory to index");
 		dialog.setContentText("Directory Path :");
-		
+
 		final ButtonType browseButton = new ButtonType("Browse", ButtonData.OTHER);
 		dialog.getDialogPane().getButtonTypes().add(browseButton);
-		
-		final Button browse = (Button) dialog.getDialogPane().lookupButton(browseButton);		
+
+		final Button browse = (Button) dialog.getDialogPane().lookupButton(browseButton);
 		browse.addEventFilter(ActionEvent.ACTION, event -> {
 			DirectoryChooser chooser = new DirectoryChooser();
-		    chooser.setInitialDirectory(new File(System.getProperty("user.home")));
-		    File dir = chooser.showDialog(this.mainApp.getPrimaryStage());
-		    if (dir == null) {
-		        return;
-		    }
-		    this.dirPath = Paths.get(dir.getAbsolutePath()).toString();
-		    dialog.getEditor().setText(this.dirPath != null ? this.dirPath : "");
+			chooser.setInitialDirectory(new File(System.getProperty("user.home")));
+			File dir = chooser.showDialog(this.mainApp.getPrimaryStage());
+			if (dir == null) {
+				return;
+			}
+			this.dirPath = Paths.get(dir.getAbsolutePath()).toString();
+			dialog.getEditor().setText(this.dirPath != null ? this.dirPath : "");
 		});
 
 		// Handles the cancel button action
@@ -197,18 +201,22 @@ public class SearchOverviewController {
 			// store it
 			// in documentsList variable
 			System.out.println("Searching for " + queryString);
-			
+
 			if (pInvertedIndex != null && biWordIndex != null) {
 				if (!documents.isEmpty())
-					documents.clear();				
+					documents.clear();
 				try {
-					documents.addAll(QueryRunner.runQueries(queryString, pInvertedIndex, biWordIndex));
+					List<Integer> docIds = QueryRunner.runQueries(queryString, pInvertedIndex, biWordIndex);
+					for (int docId : docIds) {
+						documents.add(fileNames.get(docId));
+					}
 				} catch (InvalidQueryException e) {
 					// Show an Error Alert box saying the Query is invalid
 					showErrorAlertBox("Invalid Query Format. Kindly re enter the query");
 				}
-				listView.setItems(documents);;
-				listView.getItems().forEach(doc -> System.out.println(doc));				
+				listView.setItems(documents);
+				;
+				listView.getItems().forEach(doc -> System.out.println(doc));
 			}
 		}
 	}
@@ -222,7 +230,7 @@ public class SearchOverviewController {
 		System.out.println("Printing the vocabulary");
 		// Prints all the terms in the dictionary of corpus
 		List<String> vocabulary = Arrays.asList(pInvertedIndex.getDictionary());
-		this.corpusVocabSize.setText("Size of Corpus Vocabulary is : "+vocabulary.size());
+		this.corpusVocabSize.setText("Size of Corpus Vocabulary is : " + vocabulary.size());
 		vocabulary.forEach(word -> System.out.println(word));
 
 		if (!vocab.isEmpty()) {
@@ -238,19 +246,19 @@ public class SearchOverviewController {
 	@FXML
 	private void findStem() {
 		System.out.println("Findnig the stem");
-		
-		// Fetch the word entered by the user in the textbox 
+
+		// Fetch the word entered by the user in the textbox
 		String word = userQuery.getText();
 		if (word == null) {
 			// TO-DO :: Show an error box prompting user to enter a word to stem
 		} else {
 			Alert stemInfo = new Alert(AlertType.INFORMATION);
 			stemInfo.setTitle("Finding the stem using Porter-Stemmer Algorithm");
-			stemInfo.setHeaderText("Below is the stem of the word: "+word);
-			
+			stemInfo.setHeaderText("Below is the stem of the word: " + word);
+
 			// Call PorterStemmer
 			String stem = PorterStemmer.processToken(word);
-			
+
 			stemInfo.setContentText(stem);
 			stemInfo.showAndWait();
 		}
@@ -271,11 +279,75 @@ public class SearchOverviewController {
 		// If the user clicks on the search text box, show him a message saying
 		// :: Index creation in progress
 		try {
-			System.out.println("Begin creating index at : "+ Calendar.getInstance().getTime());
-			pInvertedIndex = new PositionalInvertedIndex(dirPath);
-			biWordIndex = new BiWordIndex(dirPath);
-			this.numberOfDocsIndexed.setText("Total documents indexed = "+pInvertedIndex.getFileNames().size());
-			System.out.println("Index creation finished at : "+ Calendar.getInstance().getTime());
+			System.out.println("Begin creating index at : " + Calendar.getInstance().getTime());
+			pInvertedIndex = new PositionalInvertedIndex();
+			biWordIndex = new BiWordIndex();
+			
+			Path currentWorkingPath = Paths.get(dirPath).toAbsolutePath();
+
+			// This is our standard "walk through all .txt files" code.
+			Files.walkFileTree(currentWorkingPath, new SimpleFileVisitor<Path>() {
+				int mDocumentID = 0;
+
+				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+					// make sure we only process the current working directory
+					if (currentWorkingPath.equals(dir)) {
+						return FileVisitResult.CONTINUE;
+					}
+					return FileVisitResult.SKIP_SUBTREE;
+				}
+
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+					// only process .json files
+					if (file.toString().endsWith(".json")) {
+						// we have found a .json file; add its name to the fileName
+						// list,
+						// then index the file and increase the document ID counter.
+						// System.out.println("Indexing file " +
+						// file.getFileName());
+
+						fileNames.add(file.getFileName().toString());
+
+						// Get the contents of the body element of the file name
+						TokenStream tokenStream = Utils.getTokenStreams(file.toFile());
+						
+						int position = 0;
+						String prevToken = null;
+						while (tokenStream.hasNextToken()) {
+
+							String token = Utils.processWord(tokenStream.nextToken());
+
+							// Check if the token is hyphenized
+							// Then index the terms = # of hyphens + 1
+							if (token.contains("-")) {
+								for (String term : token.split("-")) {
+									pInvertedIndex.addTerm(PorterStemmer.processToken(term), position, mDocumentID);
+									position++;
+								}
+								position--;
+							}
+							pInvertedIndex.addTerm(PorterStemmer.processToken(Utils.removeHyphens(token)), position,
+									mDocumentID);
+							if (prevToken != null) {
+								biWordIndex.addTerm(PorterStemmer.processToken(Utils.removeHyphens(prevToken))
+										+ PorterStemmer.processToken(Utils.removeHyphens(token)), mDocumentID);
+							}
+							prevToken = token;
+							position++;
+						}
+						
+						mDocumentID++;
+					}
+					return FileVisitResult.CONTINUE;
+				}
+
+				// don't throw exceptions if files are locked/other errors occur
+				public FileVisitResult visitFileFailed(Path file, IOException e) {
+					return FileVisitResult.CONTINUE;
+				}
+			});
+			this.numberOfDocsIndexed.setText("Total documents indexed = " + fileNames.size());
+			System.out.println("Index creation finished at : " + Calendar.getInstance().getTime());
 			System.out.println("Indexes created successfully");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -294,7 +366,7 @@ public class SearchOverviewController {
 				SelectionModel<String> selectionModel = listView.getSelectionModel();
 				String itemSelected = selectionModel.getSelectedItem();
 				if (itemSelected.contains("json")) {
-					this.jsonBodyContents.setText(getDocumentText(dirPath + "\\" +itemSelected));
+					this.jsonBodyContents.setText(Utils.getDocumentText(dirPath + "\\" + itemSelected));
 				}
 			}
 		});
@@ -312,42 +384,6 @@ public class SearchOverviewController {
 		jsonBodyContents = new TextArea();
 		corpusVocabSize = new Label();
 		numberOfDocsIndexed = new Label();
-	}
-
-	/**
-	 * @return the pInvertedIndex
-	 * 
-	 */
-	// Where is this used?
-	public PositionalInvertedIndex getpInvertedIndex() {
-		if (pInvertedIndex == null) {
-			throw new NullPointerException("pInvertedIndex is null");
-		}
-		return pInvertedIndex;
-	}
-	
-	// TODO: put this somewhere else
-	private static String getDocumentText(String docLocation) {
-		
-		Reader reader = null;
-		try {
-			reader = new FileReader(docLocation);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-
-		JsonParser jsonParser = new JsonParser();
-		JsonElement element = jsonParser.parse(reader);
-		
-		String bodyContents = "";
-
-		if (element.isJsonObject()) {
-			JsonObject doc = element.getAsJsonObject();
-			bodyContents = doc.get("body").getAsString();
-		}
-		
-		return bodyContents;
-		
 	}
 
 }
