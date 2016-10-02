@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import exception.InvalidQueryException;
+import com.csulb.edu.set.exception.InvalidQueryException;
 
 public class QueryParser {
 	// TODO: list all the terms we use

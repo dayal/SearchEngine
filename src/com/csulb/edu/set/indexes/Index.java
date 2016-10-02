@@ -17,6 +17,9 @@ public abstract class Index<T> {
 
 	protected HashMap<String, List<T>> index;
 	protected List<String> fileNames;
+	
+	private static String specialCharsRegexStart = "^\\W*";
+	private static String specialCharsRegexEnd = "\\W*$";
 
 	public Index(String directory) throws IOException {
 
@@ -86,7 +89,11 @@ public abstract class Index<T> {
 	
 	// TODO: move this
 	public static String processWord(String next) {
-		return next.replaceAll("\\W", "").toLowerCase();
+		return next.replaceAll(specialCharsRegexStart, "").replaceAll(specialCharsRegexEnd, "").replaceAll("'","").toLowerCase();
+	}
+	
+	public static String removeHyphens(String next) {
+		return next.replaceAll("-","").toLowerCase();
 	}
 
 }

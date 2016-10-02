@@ -1,4 +1,4 @@
-package exception;
+package com.csulb.edu.set.exception;
 
 public class InvalidQueryException extends Exception {
 

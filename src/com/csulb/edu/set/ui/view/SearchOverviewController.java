@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import com.csulb.edu.set.MainApp;
 import com.csulb.edu.set.PorterStemmer;
+import com.csulb.edu.set.exception.InvalidQueryException;
 import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.query.QueryRunner;
@@ -200,7 +201,12 @@ public class SearchOverviewController {
 			if (pInvertedIndex != null && biWordIndex != null) {
 				if (!documents.isEmpty())
 					documents.clear();				
-				documents.addAll(QueryRunner.runQueries(queryString, pInvertedIndex, biWordIndex));
+				try {
+					documents.addAll(QueryRunner.runQueries(queryString, pInvertedIndex, biWordIndex));
+				} catch (InvalidQueryException e) {
+					// TODO Show an Error Alert box saying the Query is invalid
+					e.printStackTrace();
+				}
 				listView.setItems(documents);;
 				listView.getItems().forEach(doc -> System.out.println(doc));				
 			}

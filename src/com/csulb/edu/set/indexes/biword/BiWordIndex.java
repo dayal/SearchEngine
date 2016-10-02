@@ -94,13 +94,13 @@ public class BiWordIndex extends Index<Integer>{
 			
 			// Read and process the first token from the file
 			TokenStream tokenStream = new SimpleTokenStream(title + " " + bodyContents);			
-			String token1 = tokenStream.hasNextToken() ? PorterStemmer.processToken(processWord(tokenStream.nextToken())) : "";
+			String token1 = tokenStream.hasNextToken() ? PorterStemmer.processToken(removeHyphens(processWord(tokenStream.nextToken()))) : "";
 			
 			// call addTerm of PII with token1 + position of the token and the doc
 			
 			// Loop to read the next tokens. Sends the pair of two token to be indexed
 			while (tokenStream.hasNextToken()) {
-				String token2 = PorterStemmer.processToken(processWord(tokenStream.nextToken()));				
+				String token2 = PorterStemmer.processToken(removeHyphens(processWord(tokenStream.nextToken())));				
 				addTerm(token1 + token2, docID);
 				// Call addTerm if PII with token2 + position of the token with the doc
 				// Handle hyphenization

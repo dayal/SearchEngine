@@ -85,12 +85,10 @@ public class PositionalInvertedIndex extends Index<PositionalPosting> {
 			JsonElement element = jsonParser.parse(reader);
 			
 			String bodyContents = "";
-			String title = "";
 
 			if (element.isJsonObject()) {
 				JsonObject doc = element.getAsJsonObject();
 				bodyContents = doc.get("body").getAsString();
-				title = doc.get("title").getAsString();
 			}
 			TokenStream tokenStream = new SimpleTokenStream(bodyContents);
 			int position = 0;
@@ -98,17 +96,18 @@ public class PositionalInvertedIndex extends Index<PositionalPosting> {
 			while (tokenStream.hasNextToken()) {
 				
 				String token = tokenStream.nextToken();
+				token = processWord(token);
 				
 				// Check if the token is hyphenized
 				// Then index the terms = # of hyphens + 1				
 				if (token.contains("-")) {
 					for (String term : token.split("-")) {					
-						addTerm(PorterStemmer.processToken(processWord(term)), position, docID);
+						addTerm(PorterStemmer.processToken(term), position, docID);
 						position++;
 					}
 					position--;
 				}							
-				addTerm(PorterStemmer.processToken(processWord(token)), position, docID);
+				addTerm(PorterStemmer.processToken(token), position, docID);
 				position++;
 			}
 

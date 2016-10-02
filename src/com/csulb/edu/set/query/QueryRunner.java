@@ -4,12 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.csulb.edu.set.PorterStemmer;
+import com.csulb.edu.set.exception.InvalidQueryException;
 import com.csulb.edu.set.indexes.Index;
 import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
-
-import exception.InvalidQueryException;
 
 public class QueryRunner {
 
@@ -43,7 +42,7 @@ public class QueryRunner {
 			if (!queryLiteral.isPhrase()) {
 				// use positional inverted index
 				List<PositionalPosting> positionalPostings = pInvertedIndex
-						.getPostings(PorterStemmer.processToken(Index.processWord(queryLiteral.getTokens().get(0))));
+						.getPostings(PorterStemmer.processToken(Index.removeHyphens(Index.processWord(queryLiteral.getTokens().get(0)))));
 				if (positionalPostings != null) {
 					for (PositionalPosting positionalPosting : positionalPostings) {
 						docIds.add(positionalPosting.getDocumentId());
@@ -52,7 +51,7 @@ public class QueryRunner {
 			} else if (queryLiteral.isPhrase() && queryLiteral.getTokens().size() == 2) {
 				// use bi-word index
 				List<Integer> postings = biWordIndex.getPostings(PorterStemmer.processToken(Index.processWord(queryLiteral.getTokens().get(0)))
-						+ PorterStemmer.processToken(Index.processWord(queryLiteral.getTokens().get(1))));
+						+ PorterStemmer.processToken(Index.removeHyphens(Index.processWord(queryLiteral.getTokens().get(1)))));
 				if (postings != null) {
 					docIds.addAll(postings);
 				}
@@ -62,7 +61,7 @@ public class QueryRunner {
 				for (int i = 0; i < queryLiteral.getTokens().size(); i++) {
 					String token = queryLiteral.getTokens().get(i);
 					List<PositionalPosting> currentPostings = pInvertedIndex
-							.getPostings(PorterStemmer.processToken(Index.processWord(token)));
+							.getPostings(Index.removeHyphens(PorterStemmer.processToken(Index.processWord(token))));
 					if (postings.isEmpty()) {
 						postings = currentPostings;
 					} else {
