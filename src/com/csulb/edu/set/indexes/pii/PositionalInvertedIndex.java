@@ -23,6 +23,11 @@ public class PositionalInvertedIndex extends Index<PositionalPosting> {
 	}
 	
 	public void addTerm(String term, int pos, int documentID) {
+		// Checking if there was only a single special character which got removed as part of processing
+		// and only the empty string "" is left
+		if (term.length() == 0) {
+			return;
+		}
 		if (index.containsKey(term)) {
 
 			List<PositionalPosting> positionalPostingList = index.get(term);
@@ -87,7 +92,7 @@ public class PositionalInvertedIndex extends Index<PositionalPosting> {
 				bodyContents = doc.get("body").getAsString();
 				title = doc.get("title").getAsString();
 			}
-			TokenStream tokenStream = new SimpleTokenStream(title + " " + bodyContents);
+			TokenStream tokenStream = new SimpleTokenStream(bodyContents);
 			int position = 0;
 
 			while (tokenStream.hasNextToken()) {
@@ -97,6 +102,7 @@ public class PositionalInvertedIndex extends Index<PositionalPosting> {
 				// Check if the token is hyphenized
 				// Then index the terms = # of hyphens + 1				
 				if (token.contains("-")) {
+					System.out.println(token);
 					for (String term : token.split("-")) {					
 						addTerm(PorterStemmer.processToken(processWord(term)), position, docID);
 						position++;

@@ -34,7 +34,7 @@ public class PorterStemmer {
 	private static final Pattern Cvc = Pattern.compile("^(" + C + "){1}" + v + "[^aeiouwxy]");
 
 	public static String processToken(String token) {
-		if (token.length() < 3) {
+		if (token.length() <= 3) {
 			return token; // token must be at least 3 chars
 		}
 		// step 1a

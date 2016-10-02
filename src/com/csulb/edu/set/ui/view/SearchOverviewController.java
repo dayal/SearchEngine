@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +30,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionModel;
 import javafx.scene.control.TextArea;
@@ -46,6 +48,12 @@ public class SearchOverviewController {
 	private ObservableList<String> vocab;
 	boolean isValidDirectory;
 	private String dirPath;
+	
+	@FXML
+	private Label corpusVocabSize;
+	
+	@FXML
+	private Label numberOfDocsIndexed;
 
 	@FXML
 	private ListView<String> listView;
@@ -208,6 +216,7 @@ public class SearchOverviewController {
 		System.out.println("Printing the vocabulary");
 		// Prints all the terms in the dictionary of corpus
 		List<String> vocabulary = Arrays.asList(pInvertedIndex.getDictionary());
+		this.corpusVocabSize.setText("Size of Corpus Vocabulary is : "+vocabulary.size());
 		vocabulary.forEach(word -> System.out.println(word));
 
 		if (!vocab.isEmpty()) {
@@ -258,8 +267,11 @@ public class SearchOverviewController {
 		// If the user clicks on the search text box, show him a message saying
 		// :: Index creation in progress
 		try {
+			System.out.println("Begin creating index at : "+ Calendar.getInstance().getTime());
 			pInvertedIndex = new PositionalInvertedIndex(dirPath);
 			biWordIndex = new BiWordIndex(dirPath);
+			this.numberOfDocsIndexed.setText("Total documents indexed = "+pInvertedIndex.getFileNames().size());
+			System.out.println("Index creation finished at : "+ Calendar.getInstance().getTime());
 			System.out.println("Indexes created successfully");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -294,6 +306,8 @@ public class SearchOverviewController {
 		listView = new ListView<String>();
 		vocab = FXCollections.observableArrayList();
 		jsonBodyContents = new TextArea();
+		corpusVocabSize = new Label();
+		numberOfDocsIndexed = new Label();
 	}
 
 	/**
