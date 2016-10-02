@@ -9,7 +9,7 @@ public class QueryParser {
 	// TODO: list all the terms we use
 	
 	 private static final String singleToken = "-?[a-zA-Z0-9]((-?[^\" ]*)*[a-zA-Z0-9])?";
-	 private static final String phrase = "\" + (" + singleToken + ")*(" + singleToken + ")\"";
+	 private static final String phrase = "\"(" + singleToken + " )*(" + singleToken + ")\"";
 	 private static final String literal = singleToken + "|" + phrase;
 	 private static final String queries = "((" + literal + ") )*" + "(" +
 	 literal + ")";
@@ -84,5 +84,9 @@ public class QueryParser {
 		}
 
 		return queryList;
+	}
+	
+	public static void main(String[] args) {
+		System.out.println(phrase);
 	}
 }
