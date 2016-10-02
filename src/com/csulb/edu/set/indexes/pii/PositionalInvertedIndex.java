@@ -102,7 +102,6 @@ public class PositionalInvertedIndex extends Index<PositionalPosting> {
 				// Check if the token is hyphenized
 				// Then index the terms = # of hyphens + 1				
 				if (token.contains("-")) {
-					System.out.println(token);
 					for (String term : token.split("-")) {					
 						addTerm(PorterStemmer.processToken(processWord(term)), position, docID);
 						position++;
