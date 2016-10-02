@@ -76,7 +76,7 @@ public class QueryParser {
 			}
 			
 			// throw exception if there isn't at least one positive literal
-			if (!query.getQueryLiterals().get(0).isPositive()) {
+			if (!queryLiterals.get(0).isPositive()) {
 				throw new InvalidQueryException();
 			}
 			query.setQueryLiterals(queryLiterals);
