@@ -137,7 +137,7 @@ public class SearchOverviewController {
 					this.dirPath = dir;
 					createIndexes(dir);
 				} else {
-					showInvalidDirectoryAlert();
+					showErrorAlertBox("Invalid Directory path! Please enter a valid directory");
 				}
 			});
 		}
@@ -149,11 +149,11 @@ public class SearchOverviewController {
 	 * Displays an error dialog box to indicate the user that the directory path
 	 * entered is invalid
 	 */
-	private void showInvalidDirectoryAlert() {
+	private void showErrorAlertBox(String msg) {
 		Alert alert = new Alert(AlertType.ERROR);
 		alert.setTitle("Error Dialog");
 		alert.setHeaderText(null);
-		alert.setContentText("Invalid Directory path! Please enter a valid directory");
+		alert.setContentText(msg);
 		alert.showAndWait();
 	}
 
@@ -204,8 +204,8 @@ public class SearchOverviewController {
 				try {
 					documents.addAll(QueryRunner.runQueries(queryString, pInvertedIndex, biWordIndex));
 				} catch (InvalidQueryException e) {
-					// TODO Show an Error Alert box saying the Query is invalid
-					e.printStackTrace();
+					// Show an Error Alert box saying the Query is invalid
+					showErrorAlertBox("Invalid Query Format. Kindly re enter the query");
 				}
 				listView.setItems(documents);;
 				listView.getItems().forEach(doc -> System.out.println(doc));				
@@ -258,8 +258,6 @@ public class SearchOverviewController {
 
 	@FXML
 	private void onTextFieldClick() {
-		System.out.println("inside on textfield click");
-		System.out.println(userQuery.isEditable());
 		userQuery.setEditable(true);
 		userQuery.requestFocus();
 	}
