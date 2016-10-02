@@ -9,9 +9,9 @@ public class QueryParser {
 	// TODO: list all the terms we use
 	
 	 private static final String singleToken = "-?[a-zA-Z0-9]((-?[^\" ]*)*[a-zA-Z0-9])?";
-	 private static final String phrase = "\"(" + singleToken + " )*(" + singleToken + ")\"";
+	 private static final String phrase = "\"(" + singleToken + " +)*(" + singleToken + ")\"";
 	 private static final String literal = singleToken + "|" + phrase;
-	 private static final String queries = "((" + literal + ") )*" + "(" +
+	 private static final String queries = "((" + literal + ") +)*" + "(" +
 	 literal + ")";
 
 	public static List<Query> parseQuery(String queryInput) throws InvalidQueryException {
@@ -20,7 +20,8 @@ public class QueryParser {
 		}
 		
 		List<Query> queryList = new ArrayList<Query>();
-		String[] queryStrings = queryInput.split(" \\+ ");
+		// remove extra spaces and split by +
+		String[] queryStrings = queryInput.replaceAll(" {2,}", " ").split(" \\+ ");
 		for (String queryString : queryStrings) {
 			Query query = new Query();
 			List<QueryLiteral> queryLiterals = new LinkedList<QueryLiteral>();
