@@ -9,11 +9,13 @@ import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
 
+import exception.InvalidQueryException;
+
 public class QueryRunner {
 
 	// run the list of queries (eg. A + B + C)
 	public static List<String> runQueries(String queryInput, PositionalInvertedIndex pInvertedIndex,
-			BiWordIndex biWordIndex) {
+			BiWordIndex biWordIndex) throws InvalidQueryException {
 		System.out.println("Running the query");
 		List<Integer> docIds = new ArrayList<Integer>();
 		List<String> results = new ArrayList<String>();

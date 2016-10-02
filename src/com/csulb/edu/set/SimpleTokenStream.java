@@ -46,8 +46,5 @@ public class SimpleTokenStream implements TokenStream {
 			return null;
 		
 		return mReader.next();
-
-		//String next = mReader.next().replaceAll("\\W", "").toLowerCase();
-		//return next.length() > 0 ? next : hasNextToken() ? nextToken() : null;
 	}
 }

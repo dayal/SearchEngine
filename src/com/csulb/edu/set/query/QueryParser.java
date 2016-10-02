@@ -3,16 +3,22 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import exception.InvalidQueryException;
+
 public class QueryParser {
 	// TODO: list all the terms we use
 	
-	// private static final String singleToken = "[a-zA-Z0-9]+";
-	// private static final String phrase = "\"([a-zA-Z0-9]+ )*[a-zA-Z0-9]+\"";
-	// private static final String literal = singleToken + "|" + phrase;
-	// private static final String query = "((" + literal + ") )*" + "(" +
-	// literal + ")";
+	 private static final String singleToken = "-?[a-zA-Z0-9](-?[a-zA-Z0-9]+)";
+	 private static final String phrase = "(-?[a-zA-Z0-9](-?[a-zA-Z0-9]+?)* )*(-?[a-zA-Z0-9](-?[a-zA-Z0-9]+?)*)";
+	 private static final String literal = singleToken + "|" + phrase;
+	 private static final String query = "((" + literal + ") )*" + "(" +
+	 literal + ")";
 
-	public static List<Query> parseQuery(String queryInput) {
+	public static List<Query> parseQuery(String queryInput) throws InvalidQueryException {
+		if (!queryInput.matches(query)) {
+			throw new InvalidQueryException();
+		}
+		
 		List<Query> queryList = new ArrayList<Query>();
 		String[] queryStrings = queryInput.split(" \\+ ");
 		for (String queryString : queryStrings) {
@@ -62,21 +68,15 @@ public class QueryParser {
 					queryLiterals.add(queryLiteral);
 				}
 			}
+			
+			// throw exception if there isn't at least one positive literal
+			if (!query.getQueryLiterals().get(0).isPositive()) {
+				throw new InvalidQueryException();
+			}
 			query.setQueryLiterals(queryLiterals);
 			queryList.add(query);
 		}
 
 		return queryList;
-	}
-
-	public static void main(String[] args) {
-		List<Query> queries = parseQuery("shakes \"Jamba Juice\" + smoothies mango");
-		for (Query query : queries) {
-			System.out.println("Query:");
-			for (QueryLiteral queryLiteral : query.getQueryLiterals()) {
-				System.out.println("phrase: " + queryLiteral.isPhrase());
-				System.out.println(queryLiteral.getTokens());
-			}
-		}
 	}
 }
