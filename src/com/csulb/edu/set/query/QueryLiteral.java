@@ -1,10 +1,18 @@
 package com.csulb.edu.set.query;
 import java.util.List;
 
+/**
+ * A QueryLiteral Object represents either a single token or a phrase.
+ *
+ */
 public class QueryLiteral {
 	
+	// if the query literal is a phrase
 	private boolean isPhrase;
+	// the list of tokens in the literal
+	// a single token literal only has 1 item in this list
 	private List<String> tokens;
+	// is the query literal a positive literal
 	private boolean isPositive;
 	
 	public boolean isPositive() {

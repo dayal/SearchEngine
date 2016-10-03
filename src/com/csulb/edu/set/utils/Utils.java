@@ -26,19 +26,21 @@ public class Utils {
 
 	/**
 	 * Processes the word. Removes all the special characters at the beginnig and at the end of the word
-	 * @param next
+	 * @param token
 	 * @return
 	 */
-	public static String processWord(String next) {
-		return next.replaceAll(specialCharsRegexStart, "").replaceAll(specialCharsRegexEnd, "").replaceAll("'", "")
+	public static String processWord(String word) {
+		return word.replaceAll(specialCharsRegexStart, "").replaceAll(specialCharsRegexEnd, "").replaceAll("'", "")
 				.toLowerCase();
 	}
 
-	/*
+	/**
 	 * Removes the hyphens present in the word
+	 * @param token
+	 * @return
 	 */
-	public static String removeHyphens(String next) {
-		return next.replaceAll("-", "").toLowerCase();
+	public static String removeHyphens(String word) {
+		return word.replaceAll("-", "").toLowerCase();
 	}
 	
 	/**
