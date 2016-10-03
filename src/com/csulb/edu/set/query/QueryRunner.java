@@ -57,6 +57,11 @@ public class QueryRunner {
 					String token = queryLiteral.getTokens().get(i);
 					List<PositionalPosting> currentPostings = pInvertedIndex
 							.getPostings(Utils.removeHyphens(PorterStemmer.processToken(Utils.processWord(token))));
+					if (currentPostings == null) {
+						// no possible results
+						break;
+					}
+					
 					if (postings.isEmpty()) {
 						postings = currentPostings;
 					} else {
