@@ -15,12 +15,12 @@ import java.util.List;
 import java.util.Optional;
 
 import com.csulb.edu.set.MainApp;
-import com.csulb.edu.set.PorterStemmer;
 import com.csulb.edu.set.exception.InvalidQueryException;
 import com.csulb.edu.set.indexes.TokenStream;
 import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.query.QueryRunner;
+import com.csulb.edu.set.utils.PorterStemmer;
 import com.csulb.edu.set.utils.Utils;
 
 import javafx.application.Platform;

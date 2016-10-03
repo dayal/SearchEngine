@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
 
-import com.csulb.edu.set.SimpleTokenStream;
+import com.csulb.edu.set.indexes.SimpleTokenStream;
 import com.csulb.edu.set.indexes.TokenStream;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

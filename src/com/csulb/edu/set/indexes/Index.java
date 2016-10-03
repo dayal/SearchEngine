@@ -4,6 +4,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * An abstract class.
+ * Extended by BiWordIndex and PositionalInvertedIndex
+ * 
+ *
+ * @param <T>
+ */
 public abstract class Index<T> {
 
 	protected HashMap<String, List<T>> index;
@@ -26,6 +33,4 @@ public abstract class Index<T> {
 		
 		return dict;
 	}
-	
-//	public abstract void indexFile(TokenStream tokenStream, int docID);
 }

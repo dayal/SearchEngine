@@ -1,4 +1,4 @@
-package com.csulb.edu.set;
+package com.csulb.edu.set.utils;
 
 import java.util.regex.Pattern;
 
