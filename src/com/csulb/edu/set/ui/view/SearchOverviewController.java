@@ -127,7 +127,6 @@ public class SearchOverviewController {
 		cancel.addEventFilter(ActionEvent.ACTION, event -> {
 			this.isValidDirectory = true;
 			if (mainApp.getPrimaryStage() != null && !mainApp.getPrimaryStage().isShowing()) {
-				System.out.println("Exiting platform now!!!");
 				Platform.exit();
 			}
 		});
@@ -138,7 +137,6 @@ public class SearchOverviewController {
 			// The Java 8 way to get the response value (with lambda
 			// expression).
 			result.ifPresent(dir -> {
-				System.out.println("Directory entered : " + dir);
 				if ((new File(dir).isDirectory())) {
 					isValidDirectory = true;
 					this.dirPath = dir;
@@ -300,7 +298,7 @@ public class SearchOverviewController {
 
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
 					// only process .json files
-					System.out.println(file.toString());
+					//System.out.println(file.toString());
 					if (file.toString().endsWith(".json")) {
 						// we have found a .json file; add its name to the fileName
 						// list,
