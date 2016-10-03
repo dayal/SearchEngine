@@ -86,7 +86,8 @@
             </SplitPane>
          </children>
       </AnchorPane>
-      <Label fx:id="numberOfDocsIndexed" alignment="BOTTOM_CENTER" layoutX="455.0" layoutY="6.0" AnchorPane.rightAnchor="100.0" />
-      <Label fx:id="corpusVocabSize" layoutX="499.0" layoutY="6.0" AnchorPane.rightAnchor="0.0" />
+      <Label fx:id="numberOfDocsIndexed" alignment="BOTTOM_CENTER" layoutX="455.0" layoutY="6.0" AnchorPane.rightAnchor="0.0" />
+      <Label fx:id="corpusVocabSize" layoutX="499.0" layoutY="6.0" AnchorPane.rightAnchor="400.0" />
+      <Label fx:id="numberOfDocsMatchingQuery" layoutX="371.0" layoutY="6.0" AnchorPane.rightAnchor="200.0" />
    </children>
 </AnchorPane>

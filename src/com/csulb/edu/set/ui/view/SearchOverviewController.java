@@ -57,6 +57,9 @@ public class SearchOverviewController {
 
 	@FXML
 	private Label numberOfDocsIndexed;
+	
+	@FXML
+	private Label numberOfDocsMatchingQuery;
 
 	@FXML
 	private ListView<String> listView;
@@ -207,6 +210,7 @@ public class SearchOverviewController {
 					documents.clear();
 				try {
 					List<Integer> docIds = QueryRunner.runQueries(queryString, pInvertedIndex, biWordIndex);
+					numberOfDocsMatchingQuery.setText("Total documents found for this query = "+docIds.size());
 					for (int docId : docIds) {
 						documents.add(fileNames.get(docId));
 					}
@@ -215,8 +219,7 @@ public class SearchOverviewController {
 					showErrorAlertBox("Invalid Query Format. Kindly re enter the query");
 				}
 				listView.setItems(documents);
-				;
-				listView.getItems().forEach(doc -> System.out.println(doc));
+				//listView.getItems().forEach(doc -> System.out.println(doc));
 			}
 		}
 	}
@@ -227,11 +230,9 @@ public class SearchOverviewController {
 	 */
 	@FXML
 	private void printVocabulary() {
-		System.out.println("Printing the vocabulary");
 		// Prints all the terms in the dictionary of corpus
 		List<String> vocabulary = Arrays.asList(pInvertedIndex.getDictionary());
 		this.corpusVocabSize.setText("Size of Corpus Vocabulary is : " + vocabulary.size());
-		vocabulary.forEach(word -> System.out.println(word));
 
 		if (!vocab.isEmpty()) {
 			vocab.clear();
@@ -385,6 +386,7 @@ public class SearchOverviewController {
 		jsonBodyContents = new TextArea();
 		corpusVocabSize = new Label();
 		numberOfDocsIndexed = new Label();
+		numberOfDocsMatchingQuery = new Label();
 	}
 
 }
