@@ -1,12 +1,11 @@
 package com.csulb.edu.set.ui.model;
 
-import javafx.beans.property.StringProperty;
 
 public class Document {
 
-	private StringProperty body;
-	private StringProperty url;
-	private StringProperty title;
+	private String body;
+	private String url;
+	private String title;
 
 	/**
 	 * No args constructor for use in serialization
@@ -21,7 +20,7 @@ public class Document {
 	 * @param title
 	 * @param url
 	 */
-	public Document(StringProperty body, StringProperty url, StringProperty title) {
+	public Document(String body, String url, String title) {
 		this.body = body;
 		this.url = url;
 		this.title = title;
@@ -31,7 +30,7 @@ public class Document {
 	 * 
 	 * @return The body
 	 */
-	public StringProperty getBody() {
+	public String getBody() {
 		return body;
 	}
 
@@ -40,7 +39,7 @@ public class Document {
 	 * @param body
 	 *            The body
 	 */
-	public void setBody(StringProperty body) {
+	public void setBody(String body) {
 		this.body = body;
 	}
 
@@ -48,7 +47,7 @@ public class Document {
 	 * 
 	 * @return The url
 	 */
-	public StringProperty getUrl() {
+	public String getUrl() {
 		return url;
 	}
 
@@ -57,7 +56,7 @@ public class Document {
 	 * @param url
 	 *            The url
 	 */
-	public void setUrl(StringProperty url) {
+	public void setUrl(String url) {
 		this.url = url;
 	}
 
@@ -65,7 +64,7 @@ public class Document {
 	 * 
 	 * @return The title
 	 */
-	public StringProperty getTitle() {
+	public String getTitle() {
 		return title;
 	}
 
@@ -74,7 +73,7 @@ public class Document {
 	 * @param title
 	 *            The title
 	 */
-	public void setTitle(StringProperty title) {
+	public void setTitle(String title) {
 		this.title = title;
 	}
 

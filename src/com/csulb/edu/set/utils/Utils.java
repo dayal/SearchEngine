@@ -1,15 +1,20 @@
 package com.csulb.edu.set.utils;
 
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 
 import com.csulb.edu.set.indexes.SimpleTokenStream;
 import com.csulb.edu.set.indexes.TokenStream;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.JsonReader;
 
 /**
  * Contains the general utility methods used by the application.
@@ -19,10 +24,15 @@ import com.google.gson.JsonParser;
 public class Utils {
 
 	// Regex to remove the special chars from the beginning of the word
-	private static String specialCharsRegexStart = "^\\W*";
+	private static final String specialCharsRegexStart = "^\\W*";
 	
 	// Regex to remove the special chars from the end of the word
-	private static String specialCharsRegexEnd = "\\W*$";
+	private static final String specialCharsRegexEnd = "\\W*$";
+	
+	// Created a json parser for parsing json files
+	private static final JsonParser jsonParser = new JsonParser();	
+	
+	//private static final Gson gson = new GsonBuilder().create();
 
 	/**
 	 * Processes the word. Removes all the special characters at the beginnig and at the end of the word
@@ -47,28 +57,9 @@ public class Utils {
 	 * @param jsonFile
 	 * @return
 	 */
-	public static TokenStream getTokenStreams(File jsonFile) {
-		Reader reader = null;
-		try {
-			reader = new FileReader(jsonFile.toString());
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-
-		// Creates a json parser
-		JsonParser jsonParser = new JsonParser();
-		JsonElement element = jsonParser.parse(reader);
-
-		String bodyContents = "";
-
-		if (element.isJsonObject()) {
-			JsonObject doc = element.getAsJsonObject();
-			
-			// Get the value of the json element "body"
-			bodyContents = doc.get("body").getAsString();
-		}
-		
-		return new SimpleTokenStream(bodyContents);
+	public static TokenStream getTokenStreams(InputStream jsonFile) {
+		JsonReader reader = new JsonReader(new InputStreamReader(jsonFile));
+		return new SimpleTokenStream(jsonParser.parse(reader).getAsJsonObject().get("body").getAsString());		
 	}
 	
 
@@ -80,14 +71,24 @@ public class Utils {
 	 */
 	public static String getDocumentText(String docLocation) {
 		
-		Reader reader = null;
+		try {
+			return jsonParser.parse(new InputStreamReader(new FileInputStream(docLocation))).getAsJsonObject().get("body").getAsString();
+		} catch (JsonIOException e1) {
+			e1.printStackTrace();
+		} catch (JsonSyntaxException e1) {
+			e1.printStackTrace();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
+		
+		return "Unable to read the json file "+docLocation;
+		
+		/*Reader reader = null;
 		try {
 			reader = new FileReader(docLocation);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-
-		JsonParser jsonParser = new JsonParser();
 		JsonElement element = jsonParser.parse(reader);
 		
 		String bodyContents = "";
@@ -97,7 +98,7 @@ public class Utils {
 			bodyContents = doc.get("body").getAsString();
 		}
 		
-		return bodyContents;
+		return bodyContents;*/
 		
 	}
 }

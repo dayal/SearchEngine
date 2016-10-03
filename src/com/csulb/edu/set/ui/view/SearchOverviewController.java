@@ -1,7 +1,10 @@
 package com.csulb.edu.set.ui.view;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,6 +43,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
 
 public class SearchOverviewController {
@@ -47,11 +51,24 @@ public class SearchOverviewController {
 	/**
 	 * Holds the documents returned as result of query
 	 */
+	
+	// List of documents that matches the search query
 	private ObservableList<String> documents;
+	
+	// List containing all the vocabulary terms of the corpus
 	private ObservableList<String> vocab;
+	
+	// Flag to check if the directory entered by the user is a valid directory or not
 	boolean isValidDirectory;
+	
+	// Stores the path of the directory
+	// Used to fetch the contents of the file to be displayed on the screen
 	private String dirPath;
 
+	// The main anchorpane or the root window of the application
+	@FXML
+	private AnchorPane parentWindow;
+	
 	@FXML
 	private Label corpusVocabSize;
 
@@ -102,6 +119,12 @@ public class SearchOverviewController {
 	 * directory to index
 	 */
 	public void promptUserForDirectoryToIndex() {
+		
+		/*if (this.mainApp.getPrimaryStage().isShowing()) {
+			this.search.setDisable(true);
+			this.printVocab.setDisable(true);
+		}*/
+		
 		TextInputDialog dialog = new TextInputDialog("Enter the path here");
 		dialog.setTitle("Index A Directory");
 		dialog.setHeaderText("Kindly enter the path of the directory to index");
@@ -129,6 +152,8 @@ public class SearchOverviewController {
 			if (mainApp.getPrimaryStage() != null && !mainApp.getPrimaryStage().isShowing()) {
 				Platform.exit();
 			}
+			this.search.setDisable(false);
+			this.printVocab.setDisable(false);
 		});
 
 		Optional<String> result = null;
@@ -140,13 +165,33 @@ public class SearchOverviewController {
 				if ((new File(dir).isDirectory())) {
 					isValidDirectory = true;
 					this.dirPath = dir;
+					
+					// Show a message saying indexing in progress
+					//this.numberOfDocsIndexed.setText("Indexing in Progress....");
+					
+					// Clears the previous state of UI
+					this.jsonBodyContents.clear();
+					this.listView.getItems().clear();
+					
+					// Begin creating the index
 					createIndexes(dir);
+					
+					this.numberOfDocsIndexed.setText("Total documents indexed = " + fileNames.size());
+					
+					// Show the search app window 
+					if (!this.mainApp.getPrimaryStage().isShowing()) {
+						this.mainApp.getPrimaryStage().show();
+					}
+					
+					// Displaying a message about the total number of words in the vocabulary
+					this.vocab.clear();
+					this.vocab.addAll(Arrays.asList(pInvertedIndex.getDictionary()));
+					this.corpusVocabSize.setText("Size of Corpus Vocabulary is : " + this.vocab.size());
 				} else {
-					showErrorAlertBox("Invalid Directory path! Please enter a valid directory");
+					showAlertBox("Invalid Directory path! Please enter a valid directory", AlertType.ERROR);
 				}
 			});
 		}
-		// dirPath = result.isPresent() ? result.get() : "";
 		this.isValidDirectory = false;
 	}
 
@@ -154,9 +199,9 @@ public class SearchOverviewController {
 	 * Displays an error dialog box to indicate the user that the directory path
 	 * entered is invalid
 	 */
-	private void showErrorAlertBox(String msg) {
-		Alert alert = new Alert(AlertType.ERROR);
-		alert.setTitle("Error Dialog");
+	private void showAlertBox(String msg, AlertType type) {
+		Alert alert = new Alert(type);
+		alert.setTitle(null);
 		alert.setHeaderText(null);
 		alert.setContentText(msg);
 		alert.showAndWait();
@@ -207,17 +252,24 @@ public class SearchOverviewController {
 				if (!documents.isEmpty())
 					documents.clear();
 				try {
-					List<Integer> docIds = QueryRunner.runQueries(queryString, pInvertedIndex, biWordIndex);
+					List<Integer> docIds = QueryRunner.runQueries(queryString, pInvertedIndex, biWordIndex);					
 					numberOfDocsMatchingQuery.setText("Total documents found for this query = "+docIds.size());
+					if (!this.numberOfDocsMatchingQuery.isVisible()) this.numberOfDocsMatchingQuery.setVisible(true);
+					
+					// Show an info box saying no results found
+					if (docIds.isEmpty()) {
+						showAlertBox("Sorry. Your search results does not fetch any documents from the corpus", AlertType.INFORMATION);
+					}
+					
 					for (int docId : docIds) {
 						documents.add(fileNames.get(docId));
 					}
 				} catch (InvalidQueryException e) {
 					// Show an Error Alert box saying the Query is invalid
-					showErrorAlertBox("Invalid Query Format. Kindly re enter the query");
+					showAlertBox("Invalid Query Format. Kindly re enter the query", AlertType.ERROR);
 				}
 				listView.setItems(documents);
-				//listView.getItems().forEach(doc -> System.out.println(doc));
+				listView.scrollTo(0);
 			}
 		}
 	}
@@ -229,14 +281,9 @@ public class SearchOverviewController {
 	@FXML
 	private void printVocabulary() {
 		// Prints all the terms in the dictionary of corpus
-		List<String> vocabulary = Arrays.asList(pInvertedIndex.getDictionary());
-		this.corpusVocabSize.setText("Size of Corpus Vocabulary is : " + vocabulary.size());
-
-		if (!vocab.isEmpty()) {
-			vocab.clear();
-		}
-		vocab.addAll(vocabulary);
+		this.numberOfDocsMatchingQuery.setText("");
 		listView.setItems(vocab);
+		listView.scrollTo(0);
 	}
 
 	/**
@@ -279,6 +326,10 @@ public class SearchOverviewController {
 		// :: Index creation in progress
 		try {
 			System.out.println("Begin creating index at : " + Calendar.getInstance().getTime());
+			this.fileNames.clear();
+			this.vocab.clear();
+			this.numberOfDocsMatchingQuery.setVisible(false);
+			
 			pInvertedIndex = new PositionalInvertedIndex();
 			biWordIndex = new BiWordIndex();
 			
@@ -309,7 +360,13 @@ public class SearchOverviewController {
 						fileNames.add(file.getFileName().toString());
 
 						// Get the contents of the body element of the file name
-						TokenStream tokenStream = Utils.getTokenStreams(file.toFile());
+						InputStream in = null;
+						try {
+							in = new FileInputStream(file.toFile().getAbsolutePath());
+						} catch (FileNotFoundException e) {
+							e.printStackTrace();
+						}
+						TokenStream tokenStream = Utils.getTokenStreams(in);
 						
 						int position = 0;
 						String prevToken = null;
@@ -345,8 +402,7 @@ public class SearchOverviewController {
 				public FileVisitResult visitFileFailed(Path file, IOException e) {
 					return FileVisitResult.CONTINUE;
 				}
-			});
-			this.numberOfDocsIndexed.setText("Total documents indexed = " + fileNames.size());
+			});			
 			System.out.println("Index creation finished at : " + Calendar.getInstance().getTime());
 			System.out.println("Indexes created successfully");
 		} catch (IOException e) {

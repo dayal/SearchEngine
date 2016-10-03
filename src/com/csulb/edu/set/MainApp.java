@@ -17,8 +17,7 @@ public class MainApp extends Application {
 	/**
 	 * Constructor
 	 */
-	public MainApp() {
-		
+	public MainApp() {		
 	}
 
 	@Override
@@ -31,8 +30,6 @@ public class MainApp extends Application {
 		// window layout
 		initRootLayout();
 	}
-
-	
 
 	/**
 	 * Initializes the root layout.
@@ -48,13 +45,13 @@ public class MainApp extends Application {
 			controller = loader.getController();
 			controller.setMainApp(this);
 			
-			controller.promptUserForDirectoryToIndex();
-
 			// Show the scene containing the root layout.
 			Scene scene = new Scene(rootLayout);
 			primaryStage.setScene(scene);
-			primaryStage.show();
+			//primaryStage.show();
 			primaryStage.setMaximized(true);
+			
+			controller.promptUserForDirectoryToIndex();
 
 		} catch (IOException e) {
 			e.printStackTrace();
