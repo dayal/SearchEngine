@@ -9,7 +9,7 @@ import com.csulb.edu.set.utils.Utils;
 public class QueryParser {
 	// TODO: list all the terms we use
 	
-	 private static final String singleToken = ".+";
+	 private static final String singleToken = "[^\"]+";
 	 private static final String phrase = "\"(" + singleToken + " +)*(" + singleToken + ")\"";
 	 private static final String literal = singleToken + "|" + phrase;
 	 private static final String queries = "((" + literal + ") +)*" + "(" +
