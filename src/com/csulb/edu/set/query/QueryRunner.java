@@ -3,11 +3,11 @@ package com.csulb.edu.set.query;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.csulb.edu.set.PorterStemmer;
 import com.csulb.edu.set.exception.InvalidQueryException;
 import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
+import com.csulb.edu.set.utils.PorterStemmer;
 import com.csulb.edu.set.utils.Utils;
 
 public class QueryRunner {
@@ -57,6 +57,11 @@ public class QueryRunner {
 					String token = queryLiteral.getTokens().get(i);
 					List<PositionalPosting> currentPostings = pInvertedIndex
 							.getPostings(Utils.removeHyphens(PorterStemmer.processToken(Utils.processWord(token))));
+					if (currentPostings == null) {
+						// no possible results
+						break;
+					}
+					
 					if (postings.isEmpty()) {
 						postings = currentPostings;
 					} else {
