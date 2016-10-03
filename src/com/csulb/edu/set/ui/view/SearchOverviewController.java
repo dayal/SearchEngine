@@ -172,6 +172,8 @@ public class SearchOverviewController {
 					// Clears the previous state of UI
 					this.jsonBodyContents.clear();
 					this.listView.getItems().clear();
+					this.vocab.clear();
+					this.documents.clear();
 					
 					// Begin creating the index
 					createIndexes(dir);
