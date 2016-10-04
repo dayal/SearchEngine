@@ -265,6 +265,7 @@ public class SearchOverviewController {
 					
 					for (int docId : docIds) {
 						documents.add(fileNames.get(docId));
+						System.out.println(fileNames.get(docId));
 					}
 				} catch (InvalidQueryException e) {
 					// Show an Error Alert box saying the Query is invalid
@@ -380,7 +381,7 @@ public class SearchOverviewController {
 							// Then index the terms = # of hyphens + 1
 							if (token.contains("-")) {
 								for (String term : token.split("-")) {
-									pInvertedIndex.addTerm(PorterStemmer.processToken(term), position, mDocumentID);
+									pInvertedIndex.addTerm(PorterStemmer.processToken(Utils.processWord(term)), position, mDocumentID);
 									position++;
 								}
 								position--;
