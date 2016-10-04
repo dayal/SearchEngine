@@ -265,7 +265,7 @@ public class SearchOverviewController {
 					
 					for (int docId : docIds) {
 						documents.add(fileNames.get(docId));
-						System.out.println(fileNames.get(docId));
+						//System.out.println(fileNames.get(docId));
 					}
 				} catch (InvalidQueryException e) {
 					// Show an Error Alert box saying the Query is invalid
