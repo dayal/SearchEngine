@@ -89,6 +89,9 @@ public class DiskInvertedIndex extends Index<PositionalPosting> {
 				// postings file to get the currentDocId
 				docId = ByteBuffer.wrap(docIdsBuffer).getInt() + lastDocId;
 				
+				// Next 8 bytes is the document weight corresponding to the 
+				postings.skipBytes(8);
+				
 				// Allocate a buffer for the 4 byte term frequency value
 				buffer = new byte[4];
 				
