@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.csulb.edu.set.exception.InvalidQueryException;
+import com.csulb.edu.set.indexes.Index;
 import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
@@ -21,7 +22,7 @@ public class QueryRunner {
 	 * 
 	 * @param queryInput
 	 *            query input
-	 * @param pInvertedIndex
+	 * @param invertedIndex
 	 *            positional inverted index
 	 * @param biWordIndex
 	 *            bi-word index
@@ -29,8 +30,8 @@ public class QueryRunner {
 	 * @throws InvalidQueryException
 	 *             when query input is invalid
 	 */
-	public static List<Integer> runQueries(String queryInput, PositionalInvertedIndex pInvertedIndex,
-			BiWordIndex biWordIndex) throws InvalidQueryException {
+	public static List<Integer> runQueries(String queryInput, Index<PositionalPosting> invertedIndex,
+			Index<Integer> biWordIndex) throws InvalidQueryException {
 		System.out.println("Running the query");
 		List<Integer> docIds = new ArrayList<Integer>();
 		// parse query input into a list of query objects
@@ -39,7 +40,7 @@ public class QueryRunner {
 		for (Query query : queries) {
 			// get the union of the results returned from each individual query
 			// (Qi)
-			docIds = getUnion(docIds, getdocIdsMatchingQuery(query, pInvertedIndex, biWordIndex));
+			docIds = getUnion(docIds, getdocIdsMatchingQuery(query, invertedIndex, biWordIndex));
 		}
 
 		return docIds;
@@ -62,16 +63,17 @@ public class QueryRunner {
 	 * 
 	 * @param query
 	 *            Query object
-	 * @param pInvertedIndex
+	 * @param invertedIndex
 	 *            positional inverted index
 	 * @param biWordIndex
 	 *            bi-word index
 	 * @return a list of document IDs that match the query
 	 */
-	private static List<Integer> getdocIdsMatchingQuery(Query query, PositionalInvertedIndex pInvertedIndex,
-			BiWordIndex biWordIndex) {
+	private static List<Integer> getdocIdsMatchingQuery(Query query, Index<PositionalPosting> invertedIndex,
+			Index<Integer> biWordIndex) {
 		// final results
 		List<Integer> results = new ArrayList<Integer>();
+		
 		for (QueryLiteral queryLiteral : query.getQueryLiterals()) {
 			// docIds that match the current query literal that is being
 			// processed
@@ -79,7 +81,7 @@ public class QueryRunner {
 			if (!queryLiteral.isPhrase()) {
 				// use positional inverted index for single tokens
 				// get all the postings that match the token
-				List<PositionalPosting> positionalPostings = pInvertedIndex.getPostings(PorterStemmer
+				List<PositionalPosting> positionalPostings = invertedIndex.getPostings(PorterStemmer
 						.processToken(Utils.removeHyphens(Utils.processWord(queryLiteral.getTokens().get(0)))));
 				if (positionalPostings != null) {
 					for (PositionalPosting positionalPosting : positionalPostings) {
@@ -104,7 +106,7 @@ public class QueryRunner {
 					String token = queryLiteral.getTokens().get(i);
 					// currentPostings: postings that match the query literals
 					// that is currently being processed
-					List<PositionalPosting> currentPostings = pInvertedIndex
+					List<PositionalPosting> currentPostings = invertedIndex
 							.getPostings(Utils.removeHyphens(PorterStemmer.processToken(Utils.processWord(token))));
 					if (currentPostings == null) {
 						// no possible results
