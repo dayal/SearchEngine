@@ -96,7 +96,8 @@ public class DiskInvertedIndex extends Index<PositionalPosting> {
 				buffer = new byte[4];
 				
 				// Read the term frequency
-				int termFreq = postings.read(buffer, 0, buffer.length);
+				postings.read(buffer, 0, buffer.length);
+				int termFreq = ByteBuffer.wrap(buffer).getInt();
 
 				// Create a positions list storing the position of each occurence of this term in this document
 				int[] positions = new int[termFreq];
