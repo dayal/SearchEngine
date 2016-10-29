@@ -117,7 +117,7 @@ public class SearchOverviewController {
 	// private Index<PositionalPosting> diskInvertedIndex;
 	
 	// Declare a reference of the parent class of all the indexes
-	private Index invertedIndex;
+	private Index<PositionalPosting> invertedIndex;
 	
 	// Create a list of double value to store the document weights
 	private List<Double> docWeights;
@@ -317,7 +317,8 @@ public class SearchOverviewController {
 			
 			// Instantiates an object based on whether the user want to use DiskIndex or InMemoryIndex
 			if (useDiskIndex) {				
-				this.invertedIndex = new DiskInvertedIndex(this.dirPath);				
+				this.invertedIndex = new DiskInvertedIndex(this.dirPath);
+//				this.kGramIndex = new KGramIndex(this.dirPath);
 			} else  {
 				this.invertedIndex = this.pInvertedIndex;
 			}
@@ -326,7 +327,7 @@ public class SearchOverviewController {
 				if (!documents.isEmpty())
 					documents.clear();
 				try {
-					List<Integer> docIds = QueryRunner.runQueries(queryString, invertedIndex, biWordIndex);					
+					List<Integer> docIds = QueryRunner.runQueries(queryString, invertedIndex, biWordIndex, kGramIndex);					
 					numberOfDocsMatchingQuery.setText("Total documents found for this query = "+docIds.size());
 					if (!this.numberOfDocsMatchingQuery.isVisible()) this.numberOfDocsMatchingQuery.setVisible(true);
 					
@@ -474,7 +475,7 @@ public class SearchOverviewController {
 						String prevToken = null;
 						while (tokenStream.hasNextToken()) {
 
-							String token = Utils.processWord(tokenStream.nextToken().trim());
+							String token = Utils.processWord(tokenStream.nextToken().trim(), false);
 							
 							// Token sent to be added in kGramIndex
 							kGramIndex.processToken(token);
@@ -483,7 +484,7 @@ public class SearchOverviewController {
 							// Then index the terms = # of hyphens + 1
 							if (token.contains("-")) {
 								for (String term : token.split("-")) {
-									((PositionalInvertedIndex)pInvertedIndex).addTerm(PorterStemmer.processToken(Utils.processWord(term)), position, mDocumentID);
+									((PositionalInvertedIndex)pInvertedIndex).addTerm(PorterStemmer.processToken(Utils.processWord(term, false)), position, mDocumentID);
 									position++;
 								}
 								position--;
