@@ -106,19 +106,13 @@ public class SearchOverviewController {
 	private TextArea jsonBodyContents;
 
 	// Declare an object of PositionalInvertedIndex
-	private Index<PositionalPosting> pInvertedIndex;
+	private PositionalInvertedIndex pInvertedIndex;
 
 	// Declare an object of biWordIndex
-	private Index<Integer> biWordIndex;
+	private BiWordIndex biWordIndex;
 	
 	//Declare an object of KGramIndex
 	private KGramIndex kGramIndex;
-	
-	// Declare an object of Disk Inverted Index
-	// private Index<PositionalPosting> diskInvertedIndex;
-	
-	// Declare a reference of the parent class of all the indexes
-	private Index<PositionalPosting> invertedIndex;
 	
 	// Create a list of double value to store the document weights
 	private List<Double> docWeights;
@@ -317,8 +311,9 @@ public class SearchOverviewController {
 			System.out.println("Searching for " + queryString);
 			
 			// Instantiates an object based on whether the user want to use DiskIndex or InMemoryIndex
+			Index<PositionalPosting> pInvertedIndex;
 			if (useDiskIndex) {				
-				this.invertedIndex = new DiskPInvertedIndex(this.dirPath);
+				pInvertedIndex = new DiskPInvertedIndex(this.dirPath);
 				
 				// read kGramIndex from file
 				try {
@@ -330,14 +325,14 @@ public class SearchOverviewController {
 					
 				}
 			} else  {
-				this.invertedIndex = this.pInvertedIndex;
+				pInvertedIndex = this.pInvertedIndex;
 			}
 
-			if (this.invertedIndex != null && this.biWordIndex != null) {
+			if (pInvertedIndex != null && this.biWordIndex != null) {
 				if (!documents.isEmpty())
 					documents.clear();
 				try {
-					List<Integer> docIds = QueryRunner.runQueries(queryString, invertedIndex, biWordIndex, kGramIndex);					
+					List<Integer> docIds = QueryRunner.runQueries(queryString, pInvertedIndex, biWordIndex, kGramIndex);					
 					numberOfDocsMatchingQuery.setText("Total documents found for this query = "+docIds.size());
 					if (!this.numberOfDocsMatchingQuery.isVisible()) this.numberOfDocsMatchingQuery.setVisible(true);
 					
@@ -360,7 +355,7 @@ public class SearchOverviewController {
 				/**
 				 * TODO
 				 * 
-				 * The invertedIndex or biwordIndex could probably be null because the user choose to query the corpus 
+				 * The pInvertedIndex or biwordIndex could probably be null because the user choose to query the corpus 
 				 * with the disk index and hence the applcation never creates an in-memory index
 				 */
 			}
@@ -494,15 +489,15 @@ public class SearchOverviewController {
 							// Then index the terms = # of hyphens + 1
 							if (token.contains("-")) {
 								for (String term : token.split("-")) {
-									((PositionalInvertedIndex)pInvertedIndex).addTerm(PorterStemmer.processToken(Utils.processWord(term, false)), position, mDocumentID);
+									pInvertedIndex.addTerm(PorterStemmer.processToken(Utils.processWord(term, false)), position, mDocumentID);
 									position++;
 								}
 								position--;
 							}
-							((PositionalInvertedIndex)pInvertedIndex).addTerm(PorterStemmer.processToken(Utils.removeHyphens(token)), position,
+							pInvertedIndex.addTerm(PorterStemmer.processToken(Utils.removeHyphens(token)), position,
 									mDocumentID);
 							if (prevToken != null) {
-								((BiWordIndex)biWordIndex).addTerm(PorterStemmer.processToken(Utils.removeHyphens(prevToken))
+								biWordIndex.addTerm(PorterStemmer.processToken(Utils.removeHyphens(prevToken))
 										+ PorterStemmer.processToken(Utils.removeHyphens(token)), mDocumentID);
 							}
 							

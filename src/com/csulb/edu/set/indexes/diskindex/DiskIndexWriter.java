@@ -49,7 +49,7 @@ public class DiskIndexWriter {
 		}
 	}
 	
-	public static void buildIndexForDirectory(String dirLocation, Index pInvertedIndex) {
+	public static void buildIndexForDirectory(String dirLocation, PositionalInvertedIndex pInvertedIndex) {
 
 		// at this point, "index" contains the in-memory inverted index. Now we save the index to disk, building the below three files:
 		// 1. vocab.bin -> stores all the vocabulary terms in ASCII format
@@ -120,7 +120,7 @@ public class DiskIndexWriter {
 	 * Builds the postings.bin file for the indexed directory, using the given
 	 * NaiveInvertedIndex of that directory.
 	 */
-	private static void buildPostingsFile(String folder, Index pIndex, String[] dictionary, long[] vocabPositions) {
+	private static void buildPostingsFile(String folder, PositionalInvertedIndex pIndex, String[] dictionary, long[] vocabPositions) {
 		
 		FileOutputStream postingsFile = null;
 		Map<Integer, Double> docWeights = new HashMap<Integer, Double>();

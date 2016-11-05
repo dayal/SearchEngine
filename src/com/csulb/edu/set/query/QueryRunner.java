@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.csulb.edu.set.exception.InvalidQueryException;
 import com.csulb.edu.set.indexes.Index;
+import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.kgram.KGramIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
 import com.csulb.edu.set.utils.PorterStemmer;
@@ -32,7 +33,7 @@ public class QueryRunner {
 	 *             when query input is invalid
 	 */
 	public static List<Integer> runQueries(String queryInput, Index<PositionalPosting> invertedIndex,
-			Index<Integer> biWordIndex, KGramIndex kGramIndex) throws InvalidQueryException {
+			BiWordIndex biWordIndex, KGramIndex kGramIndex) throws InvalidQueryException {
 		System.out.println("Running the query");
 		List<Integer> docIds = new ArrayList<Integer>();
 		// parse query input into a list of query objects
