@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,7 +27,7 @@ import com.csulb.edu.set.indexes.Index;
 import com.csulb.edu.set.indexes.TokenStream;
 import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.diskindex.DiskIndexWriter;
-import com.csulb.edu.set.indexes.diskindex.DiskInvertedIndex;
+import com.csulb.edu.set.indexes.diskindex.DiskPInvertedIndex;
 import com.csulb.edu.set.indexes.kgram.KGramIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
@@ -317,8 +318,17 @@ public class SearchOverviewController {
 			
 			// Instantiates an object based on whether the user want to use DiskIndex or InMemoryIndex
 			if (useDiskIndex) {				
-				this.invertedIndex = new DiskInvertedIndex(this.dirPath);
-//				this.kGramIndex = new KGramIndex(this.dirPath);
+				this.invertedIndex = new DiskPInvertedIndex(this.dirPath);
+				
+				// read kGramIndex from file
+				try {
+					ObjectInputStream kGramInputStream = new ObjectInputStream(
+							new FileInputStream(new File(this.dirPath, "kGrams.ser")));
+					this.kGramIndex = (KGramIndex) kGramInputStream.readObject();
+					kGramInputStream.close();
+				} catch (Exception e) {
+					
+				}
 			} else  {
 				this.invertedIndex = this.pInvertedIndex;
 			}
