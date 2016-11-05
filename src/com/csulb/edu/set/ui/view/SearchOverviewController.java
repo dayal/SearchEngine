@@ -31,6 +31,8 @@ import com.csulb.edu.set.indexes.kgram.KGramIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
 import com.csulb.edu.set.query.QueryRunner;
+import com.csulb.edu.set.query.RankedDocuments;
+import com.csulb.edu.set.ui.model.Document;
 import com.csulb.edu.set.utils.PorterStemmer;
 import com.csulb.edu.set.utils.Utils;
 
@@ -46,7 +48,10 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.SelectionModel;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
@@ -103,6 +108,23 @@ public class SearchOverviewController {
 
 	@FXML
 	private TextArea jsonBodyContents;
+	
+	@FXML
+	private RadioButton rankedRetrieval;
+	
+	@FXML
+	private RadioButton booleanRetrieval;
+	
+	@FXML
+	private TableView<Document> retrievedRankedDocumentsTable;
+	
+	@FXML
+	private TableColumn<Document, String> documentNameColumn;
+	
+	@FXML
+	private TableColumn<Document, Float> documentScoreColumn;
+	
+	private boolean doBooleanQuery = true;
 
 	// Declare an object of PositionalInvertedIndex
 	private Index<PositionalPosting> pInvertedIndex;
@@ -273,6 +295,15 @@ public class SearchOverviewController {
 		alert.setContentText(msg);
 		return alert;
 	}
+	
+	@FXML
+	private void toggleQueryMode(ActionEvent event) {
+		if (booleanRetrieval.isSelected()) {
+			this.doBooleanQuery = true;
+		} else {
+			this.doBooleanQuery = false;
+		}
+	}
 
 	@FXML
 	private void indexNewDirectory() {
@@ -315,31 +346,52 @@ public class SearchOverviewController {
 			// in documentsList variable
 			System.out.println("Searching for " + queryString);
 			
+			this.invertedIndex = new DiskInvertedIndex(this.dirPath);
+			
 			// Instantiates an object based on whether the user want to use DiskIndex or InMemoryIndex
-			if (useDiskIndex) {				
+			/*if (useDiskIndex) {				
 				this.invertedIndex = new DiskInvertedIndex(this.dirPath);
 //				this.kGramIndex = new KGramIndex(this.dirPath);
 			} else  {
 				this.invertedIndex = this.pInvertedIndex;
-			}
+			}*/
 
 			if (this.invertedIndex != null && this.biWordIndex != null) {
 				if (!documents.isEmpty())
 					documents.clear();
 				try {
-					List<Integer> docIds = QueryRunner.runQueries(queryString, invertedIndex, biWordIndex, kGramIndex);					
+					List<Integer> docIds = null;
+					List<RankedDocuments> rankedDocuments = null;
+					
+					// Check if boolean query has to be performed or ranked query has to be performed
+					if (doBooleanQuery) {
+						docIds = QueryRunner.runBooleanQueries(queryString, invertedIndex, biWordIndex, kGramIndex);
+						// Show an info box saying no results found
+						if (docIds.isEmpty()) {
+							showAlertBox("Sorry. Your search results does not fetch any documents from the corpus", AlertType.INFORMATION);
+						}
+						
+						for (int docId : docIds) {
+							documents.add(fileNames.get(docId));
+							//System.out.println(fileNames.get(docId));
+						}
+					} else {
+						rankedDocuments = QueryRunner.runRankedQueries(queryString, invertedIndex, biWordIndex, kGramIndex);
+						// Show an info box saying no results found
+						if (rankedDocuments.isEmpty()) {
+							showAlertBox("Sorry. Your search results does not fetch any documents from the corpus", AlertType.INFORMATION);
+						}
+						
+						/*for (int docId : docIds) {
+							documents.add(fileNames.get(docId));
+							//System.out.println(fileNames.get(docId));
+						}*/
+					}
+										
 					numberOfDocsMatchingQuery.setText("Total documents found for this query = "+docIds.size());
 					if (!this.numberOfDocsMatchingQuery.isVisible()) this.numberOfDocsMatchingQuery.setVisible(true);
 					
-					// Show an info box saying no results found
-					if (docIds.isEmpty()) {
-						showAlertBox("Sorry. Your search results does not fetch any documents from the corpus", AlertType.INFORMATION);
-					}
 					
-					for (int docId : docIds) {
-						documents.add(fileNames.get(docId));
-						//System.out.println(fileNames.get(docId));
-					}
 				} catch (InvalidQueryException e) {
 					// Show an Error Alert box saying the Query is invalid
 					showAlertBox("Invalid Query Format. Kindly re enter the query", AlertType.ERROR);
