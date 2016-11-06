@@ -41,7 +41,7 @@ public class QueryRunner {
 		System.out.println("Running the query");
 		List<Integer> docIds = new ArrayList<Integer>();
 		// parse query input into a list of query objects
-		List<Query> queries = QueryParser.parseBooleanQuery(queryInput);
+		List<Query> queries = QueryParser.parseQuery(queryInput);
 
 		for (Query query : queries) {
 			// get the union of the results returned from each individual query
@@ -53,22 +53,22 @@ public class QueryRunner {
 	}
 	
 	
-	public static List<RankedDocuments> runRankedQueries(String queryInput, Index<PositionalPosting> invertedIndex,
+	public static List<RankedDocument> runRankedQueries(String queryInput, Index<PositionalPosting> invertedIndex,
 			BiWordIndex biWordIndex, KGramIndex kGramIndex) throws InvalidQueryException {
 		System.out.println("Running the query");
 		
 		int k = 10;
 		
-		PriorityQueue<RankedDocuments> pQueue = new PriorityQueue<RankedDocuments>();
+		PriorityQueue<RankedDocument> pQueue = new PriorityQueue<RankedDocument>();
 		
-		List<RankedDocuments> rankedDocumentsList = new ArrayList<RankedDocuments>();
+		List<RankedDocument> rankedDocumentsList = new ArrayList<RankedDocument>();
 		
 		DiskInvertedIndex diskInvertedIndex = (DiskInvertedIndex) invertedIndex;
 		
 		// parse query input into a list of query objects
-		List<Query> queries = QueryParser.parseBooleanQuery(queryInput);
+		List<Query> queries = QueryParser.parseQuery(queryInput);
 
-		Map<Integer, RankedDocuments> rankedDocs = new HashMap<Integer, RankedDocuments>();
+		Map<Integer, RankedDocument> rankedDocs = new HashMap<Integer, RankedDocument>();
 		
 		for (Query query : queries) {
 			 for (QueryLiteral queryLiterals : query.getQueryLiterals()) {
@@ -80,15 +80,15 @@ public class QueryRunner {
 					 double wqt = Math.log((1 + (diskInvertedIndex.getFileNames().size() / termPostingsList.size())));
 					 
 					 for (PositionalPosting pPosting : termPostingsList) {
-						 float newScore = 0f;
-						 RankedDocuments rankedDoc = null;
+						 double newScore = 0;
+						 RankedDocument rankedDoc = null;
 						 if (rankedDocs.containsKey(pPosting.getDocumentId())) {
 							 rankedDoc = rankedDocs.get(pPosting.getDocumentId());
-							 newScore = (float) (rankedDoc.getScoreAccumulator() + (wqt * pPosting.getWdt()));
+							 newScore = rankedDoc.getScoreAccumulator() + (wqt * pPosting.getWdt());
 							 rankedDoc.setScoreAccumulator(newScore);							 
 						 } else {							 
-							 newScore =  (float) (wqt * pPosting.getWdt());
-							 rankedDoc = new RankedDocuments(pPosting.getDocumentId(), newScore);
+							 newScore =  wqt * pPosting.getWdt();
+							 rankedDoc = new RankedDocument(pPosting.getDocumentId(), newScore);
 						 }
 						 rankedDocs.put(pPosting.getDocumentId(), rankedDoc);
 						 //pPosting.setScoreAccumulator(pPosting.getScoreAccumulator() + (wqt * pPosting.getWdt()));
@@ -98,7 +98,7 @@ public class QueryRunner {
 		}
 		
 		// Sort the ranked documents in the decreasing order
-		for (RankedDocuments rd : rankedDocs.values()) {
+		for (RankedDocument rd : rankedDocs.values()) {
 			pQueue.add(rd);
 		}
 		

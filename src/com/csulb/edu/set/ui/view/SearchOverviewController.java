@@ -32,7 +32,7 @@ import com.csulb.edu.set.indexes.kgram.KGramIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
 import com.csulb.edu.set.query.QueryRunner;
-import com.csulb.edu.set.query.RankedDocuments;
+import com.csulb.edu.set.query.RankedDocument;
 import com.csulb.edu.set.ui.model.Document;
 import com.csulb.edu.set.utils.PorterStemmer;
 import com.csulb.edu.set.utils.Utils;
@@ -361,7 +361,7 @@ public class SearchOverviewController {
 					documents.clear();
 				try {
 					List<Integer> docIds = null;
-					List<RankedDocuments> rankedDocuments = null;
+					List<RankedDocument> rankedDocuments = null;
 					
 					// Check if boolean query has to be performed or ranked query has to be performed
 					if (doBooleanQuery) {

@@ -20,14 +20,6 @@ public class DiskIndexWriter {
 		} catch (Exception e) {
 			
 		}
-		
-		/**
-		 * Code to read the serialized object from disk
-		 */
-	    /*FileInputStream fis = new FileInputStream("map.ser");
-	    ObjectInputStream ois = new ObjectInputStream(fis);
-	    Map anotherMap = (Map) ois.readObject();
-	    ois.close();*/
 	}
 	
 	public static void saveDocumentWeightsOnDisk(String dirLocation, Map<Integer, Double> docWeights) {
@@ -229,10 +221,10 @@ public class DiskIndexWriter {
 					}				
 					
 					// Convert the double representation of the wdt into its corresponding byteFrequency
-					byte[] docWeightBytes = ByteBuffer.allocate(8).putDouble(wdt).array(); 
+					byte[] wdtBytes = ByteBuffer.allocate(8).putDouble(wdt).array(); 
 					
 					// Write the byte representation of the wdt into the file
-					postingsFile.write(docWeightBytes, 0, docWeightBytes.length);
+					postingsFile.write(wdtBytes, 0, wdtBytes.length);
 					
 					// Convert the integer representation of the termFrequency into its corresponding byteFrequency
 					byte[] termFreqBytes = ByteBuffer.allocate(4).putInt(termFrequency).array(); 

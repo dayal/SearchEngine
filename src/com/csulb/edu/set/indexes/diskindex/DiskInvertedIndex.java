@@ -21,6 +21,7 @@ public class DiskInvertedIndex extends Index<PositionalPosting> {
 
 	private RandomAccessFile mVocabList;
 	private RandomAccessFile mPostings;
+	private RandomAccessFile mDocWeights;
 	private long[] mVocabTable;
 	private List<String> mFileNames;
 
@@ -28,6 +29,7 @@ public class DiskInvertedIndex extends Index<PositionalPosting> {
 		try {
 			mVocabList = new RandomAccessFile(new File(path, "vocab.bin"), "r");
 			mPostings = new RandomAccessFile(new File(path, "postings.bin"), "r");
+			mDocWeights = new RandomAccessFile(new File(path, "docWeights.bin"), "r");
 			mVocabTable = readVocabTable(path);
 			mFileNames = readFileNames(path);
 		} catch (FileNotFoundException ex) {
@@ -260,5 +262,20 @@ public class DiskInvertedIndex extends Index<PositionalPosting> {
 
 	public int getTermCount() {
 		return mVocabTable.length / 2;
+	}
+	
+	public double getDocWeight(int docId) {
+		try {
+			// set the offset to where the weight of this doc is located at
+			mDocWeights.seek(docId * 8);
+			
+			byte[] byteBuffer = new byte[8];
+			mDocWeights.read(byteBuffer, 0, byteBuffer.length);
+
+			return ByteBuffer.wrap(byteBuffer).getDouble();
+		} catch (IOException ex) {
+			System.out.println(ex.toString());
+		}
+		return 0;
 	}
 }
