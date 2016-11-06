@@ -172,7 +172,7 @@ public class DiskBiWordIndex extends Index<Integer> {
 		try {
 			long[] vocabTable;
 
-			RandomAccessFile tableFile = new RandomAccessFile(new File(indexName, DiskIndexEnum.POSITIONAL_INDEX.getVocabTableFileName()), "r");
+			RandomAccessFile tableFile = new RandomAccessFile(new File(indexName, DiskIndexEnum.BI_WORD_INDEX.getVocabTableFileName()), "r");
 
 			// Creates a byte array named "byteBuffer" of size 4
 			byte[] byteBuffer = new byte[4];
