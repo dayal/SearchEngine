@@ -17,17 +17,15 @@ import java.util.stream.Collectors;
 import com.csulb.edu.set.indexes.Index;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
 
-public class DiskPInvertedIndex extends Index<PositionalPosting> {
+public class DiskInvertedIndex extends Index<PositionalPosting> {
 
-	private String mPath;
 	private RandomAccessFile mVocabList;
 	private RandomAccessFile mPostings;
 	private long[] mVocabTable;
 	private List<String> mFileNames;
 
-	public DiskPInvertedIndex(String path) {
+	public DiskInvertedIndex(String path) {
 		try {
-			mPath = path;
 			mVocabList = new RandomAccessFile(new File(path, "vocab.bin"), "r");
 			mPostings = new RandomAccessFile(new File(path, "postings.bin"), "r");
 			mVocabTable = readVocabTable(path);
@@ -75,6 +73,7 @@ public class DiskPInvertedIndex extends Index<PositionalPosting> {
 
 			byte docIdsBuffer[] = new byte[4];
 			byte positionsBuffer[] = new byte[4];
+			byte wdtBuffer[] = new byte[8];
 
 			for (int docIdIndex = 0; docIdIndex < documentFrequency; docIdIndex++) {
 
@@ -90,7 +89,9 @@ public class DiskPInvertedIndex extends Index<PositionalPosting> {
 				docId = ByteBuffer.wrap(docIdsBuffer).getInt() + lastDocId;
 				
 				// Next 8 bytes is the document weight corresponding to the 
-				postings.skipBytes(8);
+				//postings.skipBytes(8);
+				postings.read(wdtBuffer, 0, wdtBuffer.length);
+				double wdt = ByteBuffer.wrap(wdtBuffer).getDouble();
 				
 				// Allocate a buffer for the 4 byte term frequency value
 				buffer = new byte[4];
@@ -110,7 +111,7 @@ public class DiskPInvertedIndex extends Index<PositionalPosting> {
 
 				lastDocId = docId;
 				PositionalPosting positionalPosting = new PositionalPosting(docId,
-						Arrays.stream(positions).boxed().collect(Collectors.toList()));
+						Arrays.stream(positions).boxed().collect(Collectors.toList()), wdt);
 
 				docList.add(positionalPosting);
 			}
@@ -170,7 +171,6 @@ public class DiskPInvertedIndex extends Index<PositionalPosting> {
 			final Path currentWorkingPath = Paths.get(indexName).toAbsolutePath();
 
 			Files.walkFileTree(currentWorkingPath, new SimpleFileVisitor<Path>() {
-				int mDocumentID = 0;
 
 				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
 					// make sure we only process the current working directory
@@ -182,7 +182,7 @@ public class DiskPInvertedIndex extends Index<PositionalPosting> {
 
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
 					// only process .txt files
-					if (file.toString().endsWith(".txt")) {
+					if (file.toString().endsWith(".json")) {
 						names.add(file.toFile().getName());
 					}
 					return FileVisitResult.CONTINUE;

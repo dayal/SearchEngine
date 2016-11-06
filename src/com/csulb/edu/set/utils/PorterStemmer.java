@@ -158,7 +158,7 @@ public class PorterStemmer {
 
 		if (token.endsWith("ll")) {
 			String stem = token.substring(0, token.length() - 2);
-			if (mGr1.matcher(token).matches()) { // use token not stem here
+			if (mGr1.matcher(stem).matches()) { // use token not stem here
 				token = token.substring(0, token.length() - 1);
 			}
 		}
