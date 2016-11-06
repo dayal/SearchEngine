@@ -11,25 +11,22 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.csulb.edu.set.indexes.Index;
-import com.csulb.edu.set.indexes.pii.PositionalPosting;
 
-public class DiskInvertedIndex extends Index<PositionalPosting> {
+public class DiskBiWordIndex extends Index<Integer> {
 
 	private RandomAccessFile mVocabList;
 	private RandomAccessFile mPostings;
-	private RandomAccessFile mDocWeights;
 	private long[] mVocabTable;
 	private List<String> mFileNames;
 
-	public DiskInvertedIndex(String path) {
+	public DiskBiWordIndex(String path) {
 		try {
-			mVocabList = new RandomAccessFile(new File(path, DiskIndexEnum.POSITIONAL_INDEX.getVocabFileName()), "r");
-			mPostings = new RandomAccessFile(new File(path, DiskIndexEnum.POSITIONAL_INDEX.getPostingsFileName()), "r");
-			mDocWeights = new RandomAccessFile(new File(path, "docWeights.bin"), "r");
+			mVocabList = new RandomAccessFile(new File(path, DiskIndexEnum.BI_WORD_INDEX.getVocabFileName()), "r");
+			mPostings = new RandomAccessFile(new File(path, DiskIndexEnum.BI_WORD_INDEX.getPostingsFileName()), "r");
 			mVocabTable = readVocabTable(path);
 			mFileNames = readFileNames(path);
 		} catch (FileNotFoundException ex) {
@@ -37,7 +34,7 @@ public class DiskInvertedIndex extends Index<PositionalPosting> {
 		}
 	}
 
-	public List<PositionalPosting> getPostings(String term) {
+	public List<Integer> getPostings(String term) {
 		long postingsPosition = binarySearchVocabulary(term);
 		if (postingsPosition >= 0) {
 			return readPostingsFromFile(mPostings, postingsPosition);
@@ -45,10 +42,10 @@ public class DiskInvertedIndex extends Index<PositionalPosting> {
 		return null;
 	}
 
-	private static List<PositionalPosting> readPostingsFromFile(RandomAccessFile postings, long postingsPosition) {
+	private static List<Integer> readPostingsFromFile(RandomAccessFile postings, long postingsPosition) {
 		try {
 			// initialize the array that will hold the postings.
-			List<PositionalPosting> docList = new ArrayList<PositionalPosting>();
+			List<Integer> docList = new ArrayList<Integer>();
 
 			// seek to the position in the file where the postings start.
 			postings.seek(postingsPosition);
@@ -74,48 +71,15 @@ public class DiskInvertedIndex extends Index<PositionalPosting> {
 			int lastDocId = 0;
 
 			byte docIdsBuffer[] = new byte[4];
-			byte positionsBuffer[] = new byte[4];
-			byte wdtBuffer[] = new byte[8];
 
 			for (int docIdIndex = 0; docIdIndex < documentFrequency; docIdIndex++) {
 
 				// Reads the 4 bytes of the docId into docIdsBuffer
 				postings.read(docIdsBuffer, 0, docIdsBuffer.length);
 
-				// Convert the byte representation of the docId into the integer
-				// representation
-				// Current docId is the difference between the lastDocId and the
-				// currentDocId
-				// So add the lastDocId to the current number read from the
-				// postings file to get the currentDocId
 				docId = ByteBuffer.wrap(docIdsBuffer).getInt() + lastDocId;
-				
-				// Next 8 bytes is the document weight corresponding to the 
-				//postings.skipBytes(8);
-				postings.read(wdtBuffer, 0, wdtBuffer.length);
-				double wdt = ByteBuffer.wrap(wdtBuffer).getDouble();
-				
-				// Allocate a buffer for the 4 byte term frequency value
-				buffer = new byte[4];
-				
-				// Read the term frequency
-				postings.read(buffer, 0, buffer.length);
-				int termFreq = ByteBuffer.wrap(buffer).getInt();
-
-				// Create a positions list storing the position of each occurence of this term in this document
-				int[] positions = new int[termFreq];
-				
-				// Iterate through the postings file and get the positions of this term into the positions array
-				for (int positionIndex = 0; positionIndex < termFreq; positionIndex++) {
-					postings.read(positionsBuffer, 0, positionsBuffer.length);
-					positions[positionIndex] = ByteBuffer.wrap(positionsBuffer).getInt();
-				}
-
 				lastDocId = docId;
-				PositionalPosting positionalPosting = new PositionalPosting(docId,
-						Arrays.stream(positions).boxed().collect(Collectors.toList()), wdt);
-
-				docList.add(positionalPosting);
+				docList.add(docId);
 			}
 			return docList;
 		} catch (IOException ex) {
@@ -258,20 +222,5 @@ public class DiskInvertedIndex extends Index<PositionalPosting> {
 
 	public int getTermCount() {
 		return mVocabTable.length / 2;
-	}
-	
-	public double getDocWeight(int docId) {
-		try {
-			// set the offset to where the weight of this doc is located at
-			mDocWeights.seek(docId * 8);
-			
-			byte[] byteBuffer = new byte[8];
-			mDocWeights.read(byteBuffer, 0, byteBuffer.length);
-
-			return ByteBuffer.wrap(byteBuffer).getDouble();
-		} catch (IOException ex) {
-			System.out.println(ex.toString());
-		}
-		return 0;
 	}
 }

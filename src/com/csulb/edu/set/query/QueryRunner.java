@@ -11,7 +11,7 @@ import java.util.Set;
 import com.csulb.edu.set.exception.InvalidQueryException;
 import com.csulb.edu.set.indexes.Index;
 import com.csulb.edu.set.indexes.biword.BiWordIndex;
-import com.csulb.edu.set.indexes.diskindex.DiskInvertedIndex;
+import com.csulb.edu.set.indexes.diskindex.DiskPositionalIndex;
 import com.csulb.edu.set.indexes.kgram.KGramIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
 import com.csulb.edu.set.utils.PorterStemmer;
@@ -63,7 +63,7 @@ public class QueryRunner {
 		
 		List<RankedDocument> rankedDocumentsList = new ArrayList<RankedDocument>();
 		
-		DiskInvertedIndex diskInvertedIndex = (DiskInvertedIndex) invertedIndex;
+		DiskPositionalIndex diskInvertedIndex = (DiskPositionalIndex) invertedIndex;
 		
 		// parse query input into a list of query objects
 		List<Query> queries = QueryParser.parseQuery(queryInput);

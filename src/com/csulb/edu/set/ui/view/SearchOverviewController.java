@@ -26,8 +26,9 @@ import com.csulb.edu.set.exception.InvalidQueryException;
 import com.csulb.edu.set.indexes.Index;
 import com.csulb.edu.set.indexes.TokenStream;
 import com.csulb.edu.set.indexes.biword.BiWordIndex;
+import com.csulb.edu.set.indexes.diskindex.DiskBiWordIndex;
 import com.csulb.edu.set.indexes.diskindex.DiskIndexWriter;
-import com.csulb.edu.set.indexes.diskindex.DiskInvertedIndex;
+import com.csulb.edu.set.indexes.diskindex.DiskPositionalIndex;
 import com.csulb.edu.set.indexes.kgram.KGramIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
@@ -342,8 +343,8 @@ public class SearchOverviewController {
 			Index<Integer> biWordIndex = this.biWordIndex;
 			// Instantiates an object based on whether the user want to use DiskIndex or InMemoryIndex
 			if (useDiskIndex) {				
-				pInvertedIndex = new DiskInvertedIndex(this.dirPath);
-				
+				pInvertedIndex = new DiskPositionalIndex(this.dirPath);
+				biWordIndex = new DiskBiWordIndex(this.dirPath);
 				// read kGramIndex from file
 				try {
 					ObjectInputStream kGramInputStream = new ObjectInputStream(

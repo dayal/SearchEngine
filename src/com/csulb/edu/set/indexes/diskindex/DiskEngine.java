@@ -31,7 +31,7 @@ public class DiskEngine {
 			System.out.println("Enter the name of an index to read:");
 			String indexName = scan.nextLine();
 
-			DiskInvertedIndex index = new DiskInvertedIndex(indexName);
+			DiskPositionalIndex index = new DiskPositionalIndex(indexName);
 
 			while (true) {
 				System.out.println("Enter one or more search terms, separated " + "by spaces:");
