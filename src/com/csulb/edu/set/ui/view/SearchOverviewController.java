@@ -338,8 +338,9 @@ public class SearchOverviewController {
 			// in documentsList variable
 			System.out.println("Searching for " + queryString);
 			
+			Index<PositionalPosting> pInvertedIndex = this.pInvertedIndex;
+			Index<Integer> biWordIndex = this.biWordIndex;
 			// Instantiates an object based on whether the user want to use DiskIndex or InMemoryIndex
-			Index<PositionalPosting> pInvertedIndex;
 			if (useDiskIndex) {				
 				pInvertedIndex = new DiskInvertedIndex(this.dirPath);
 				
@@ -350,10 +351,7 @@ public class SearchOverviewController {
 					this.kGramIndex = (KGramIndex) kGramInputStream.readObject();
 					kGramInputStream.close();
 				} catch (Exception e) {
-					
 				}
-			} else  {
-				pInvertedIndex = this.pInvertedIndex;
 			}
 
 			if (pInvertedIndex != null && this.biWordIndex != null) {
@@ -365,7 +363,7 @@ public class SearchOverviewController {
 					
 					// Check if boolean query has to be performed or ranked query has to be performed
 					if (doBooleanQuery) {
-						docIds = QueryRunner.runBooleanQueries(queryString, pInvertedIndex, biWordIndex, kGramIndex);
+						docIds = QueryRunner.runBooleanQueries(queryString, pInvertedIndex, biWordIndex, this.kGramIndex);
 						// Show an info box saying no results found
 						if (docIds.isEmpty()) {
 							showAlertBox("Sorry. Your search results does not fetch any documents from the corpus", AlertType.INFORMATION);
@@ -376,7 +374,7 @@ public class SearchOverviewController {
 							//System.out.println(fileNames.get(docId));
 						}
 					} else {
-						rankedDocuments = QueryRunner.runRankedQueries(queryString, pInvertedIndex, biWordIndex, kGramIndex);
+						rankedDocuments = QueryRunner.runRankedQueries(queryString, pInvertedIndex, biWordIndex, this.kGramIndex);
 						// Show an info box saying no results found
 						if (rankedDocuments.isEmpty()) {
 							showAlertBox("Sorry. Your search results does not fetch any documents from the corpus", AlertType.INFORMATION);
@@ -458,8 +456,9 @@ public class SearchOverviewController {
 		// TODO Auto-generated method stub
 		
 		// Persist the PositionalInvertedIndex on disk
-		DiskIndexWriter.buildIndexForDirectory(this.dirPath, this.pInvertedIndex);
+		DiskIndexWriter.buildPositionalIndexOnDisk(this.dirPath, this.pInvertedIndex);
 		DiskIndexWriter.storeKGramIndexOnDisk(this.dirPath, this.kGramIndex);
+		DiskIndexWriter.storeBiWordIndexOnDisk(this.dirPath, this.biWordIndex);
 	}
 
 	/**

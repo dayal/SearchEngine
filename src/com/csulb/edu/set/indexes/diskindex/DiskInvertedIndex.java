@@ -27,8 +27,8 @@ public class DiskInvertedIndex extends Index<PositionalPosting> {
 
 	public DiskInvertedIndex(String path) {
 		try {
-			mVocabList = new RandomAccessFile(new File(path, "vocab.bin"), "r");
-			mPostings = new RandomAccessFile(new File(path, "postings.bin"), "r");
+			mVocabList = new RandomAccessFile(new File(path, DiskIndexEnum.POSITIONAL_INDEX.getVocabFileName()), "r");
+			mPostings = new RandomAccessFile(new File(path, DiskIndexEnum.POSITIONAL_INDEX.getPostingsFileName()), "r");
 			mDocWeights = new RandomAccessFile(new File(path, "docWeights.bin"), "r");
 			mVocabTable = readVocabTable(path);
 			mFileNames = readFileNames(path);
@@ -208,7 +208,7 @@ public class DiskInvertedIndex extends Index<PositionalPosting> {
 		try {
 			long[] vocabTable;
 
-			RandomAccessFile tableFile = new RandomAccessFile(new File(indexName, "vocabTable.bin"), "r");
+			RandomAccessFile tableFile = new RandomAccessFile(new File(indexName, DiskIndexEnum.POSITIONAL_INDEX.getVocabTableFileName()), "r");
 
 			// Creates a byte array named "byteBuffer" of size 4
 			byte[] byteBuffer = new byte[4];
@@ -237,12 +237,8 @@ public class DiskInvertedIndex extends Index<PositionalPosting> {
 
 			byteBuffer = new byte[8];
 
-			while (tableFile.read(byteBuffer, 0, byteBuffer.length) > 0) { // while
-																			// we
-																			// keep
-																			// reading
-																			// 8
-																			// bytes
+			while (tableFile.read(byteBuffer, 0, byteBuffer.length) > 0) { 
+				// while we keep reading 8 bytes
 				vocabTable[tableIndex] = ByteBuffer.wrap(byteBuffer).getLong();
 				tableIndex++;
 			}

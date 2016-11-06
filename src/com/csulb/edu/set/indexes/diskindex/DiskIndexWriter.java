@@ -4,6 +4,8 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import com.csulb.edu.set.indexes.Index;
+import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.kgram.KGramIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
@@ -20,6 +22,14 @@ public class DiskIndexWriter {
 		} catch (Exception e) {
 			
 		}
+	}
+	
+	public static void storeBiWordIndexOnDisk(String dirLocation, BiWordIndex biWordIndex) {
+		String[] dictionary = biWordIndex.getDictionary();
+		long[] vocabPositions = new long[dictionary.length];
+		buildVocabFile(dirLocation, dictionary, vocabPositions, DiskIndexEnum.BI_WORD_INDEX);
+		buildPostingsFile(dirLocation, biWordIndex, dictionary, vocabPositions, DiskIndexEnum.BI_WORD_INDEX);
+		
 	}
 	
 	public static void saveDocumentWeightsOnDisk(String dirLocation, Map<Integer, Double> docWeights) {
@@ -40,7 +50,7 @@ public class DiskIndexWriter {
 		}
 	}
 	
-	public static void buildIndexForDirectory(String dirLocation, PositionalInvertedIndex pInvertedIndex) {
+	public static void buildPositionalIndexOnDisk(String dirLocation, PositionalInvertedIndex pInvertedIndex) {
 
 		// at this point, "index" contains the in-memory inverted index. Now we save the index to disk, building the below three files:
 		// 1. vocab.bin -> stores all the vocabulary terms in ASCII format
@@ -52,8 +62,8 @@ public class DiskIndexWriter {
 		// an array of positions in the vocabulary file
 		long[] vocabPositions = new long[dictionary.length];
 
-		buildVocabFile(dirLocation, dictionary, vocabPositions);
-		buildPostingsFile(dirLocation, pInvertedIndex, dictionary, vocabPositions);
+		buildVocabFile(dirLocation, dictionary, vocabPositions, DiskIndexEnum.POSITIONAL_INDEX);
+		buildPostingsFile(dirLocation, pInvertedIndex, dictionary, vocabPositions, DiskIndexEnum.POSITIONAL_INDEX);
 	}
 	
 	/**
@@ -70,26 +80,26 @@ public class DiskIndexWriter {
 	 * @param dictionary
 	 * @param vocabPositions
 	 */
-	private static void buildVocabFile(String folder, String[] dictionary, long[] vocabPositions) {
+	private static void buildVocabFile(String folder, String[] dictionary, long[] vocabPositions, DiskIndexEnum indexType) {
 		OutputStreamWriter vocabList = null;
 		try {
 			// first build the vocabulary list: a file of each vocab word
 			// concatenated together.
 			// also build an array associating each term with its byte location
 			// in this file.
-			int vocabI = 0;
-			vocabList = new OutputStreamWriter(new FileOutputStream(new File(folder, "vocab.bin")), "ASCII");
+			int vocabIndex = 0;
+			vocabList = new OutputStreamWriter(new FileOutputStream(new File(folder, indexType.getVocabFileName())), "ASCII");
 
 			int vocabPos = 0;
 			for (String vocabWord : dictionary) {
 				// for each String in dictionary, save the byte position where
 				// that term will start in the vocab file.
-				vocabPositions[vocabI] = vocabPos;
+				vocabPositions[vocabIndex] = vocabPos;
 				//System.out.println("Byte Position where the word " + vocabWord + " starts is : " + vocabPos);
 				
 				vocabList.write(vocabWord); // then write the String
 				
-				vocabI++;
+				vocabIndex++;
 				vocabPos += vocabWord.length();
 			}
 		} catch (FileNotFoundException ex) {
@@ -110,18 +120,20 @@ public class DiskIndexWriter {
 	/**
 	 * Builds the postings.bin file for the indexed directory, using the given
 	 * NaiveInvertedIndex of that directory.
+	 * @param <T>
 	 */
-	private static void buildPostingsFile(String folder, PositionalInvertedIndex pIndex, String[] dictionary, long[] vocabPositions) {
+	@SuppressWarnings("unchecked")
+	private static <T> void buildPostingsFile(String folder, Index<T> pIndex, String[] dictionary, long[] vocabPositions, DiskIndexEnum indexType) {
 		
 		FileOutputStream postingsFile = null;
 		Map<Integer, Double> docWeights = new HashMap<Integer, Double>();
 		
 		try {
-			postingsFile = new FileOutputStream(new File(folder, "postings.bin"));
+			postingsFile = new FileOutputStream(new File(folder, indexType.getPostingsFileName()));
 
 			// simultaneously build the vocabulary table on disk, mapping a term index to a
 			// file location in the postings file.
-			FileOutputStream vocabTable = new FileOutputStream(new File(folder, "vocabTable.bin"));
+			FileOutputStream vocabTable = new FileOutputStream(new File(folder, indexType.getVocabTableFileName()));
 
 			// the first thing we must write to the vocabTable file is the number of vocab term i.e the size of the corpus dictionary
 			
@@ -132,9 +144,9 @@ public class DiskIndexWriter {
 			// Writing the dictionary size as a 4 byte value in the vocab table
 			vocabTable.write(tSize, 0, tSize.length);
 			
-			// Creating an index to get the vocabPosition of this word which wre placed in the vocabPositions array 
+			// Creating an index to get the vocabPosition of this word which we placed in the vocabPositions array 
 			// while converting the dictionary into the vocab.bin file
-			int vocabI = 0;
+			int vocabIndex = 0;
 			
 			// Processing each word from the corpus dictionary one by one and writing it to the vocabTable.bin file
 			// Each single iteration of this for loop writes 16 bytes of data in the vocabTable.bin file
@@ -143,7 +155,7 @@ public class DiskIndexWriter {
 				
 				// write the vocab table entry for this term: 
 				// byte location of the term in the vocablist file <---> and the byte location of the postings for the term in the postings file.
-				byte[] vPositionBytes = ByteBuffer.allocate(8).putLong(vocabPositions[vocabI]).array();
+				byte[] vPositionBytes = ByteBuffer.allocate(8).putLong(vocabPositions[vocabIndex]).array();
 				
 				// Printing some info for understanding
 				/*System.out.print("position of the first character of the term : " + s + " : is = " + vocabPositions[vocabI] + ". Byte Representation : ");
@@ -182,7 +194,7 @@ public class DiskIndexWriter {
 				// the document IDs, encoded as gaps.
 				
 				// for each String in dictionary, retrieve the list of postings which gives you the document frequency.
-				List<PositionalPosting> postings = pIndex.getPostings(s);
+				List<T> postings = pIndex.getPostings(s);
 				
 				// Now convert the size of the postings list into a 4 byte value
 				byte[] docFreqBytes = ByteBuffer.allocate(4).putInt(postings.size()).array();
@@ -191,58 +203,69 @@ public class DiskIndexWriter {
 				postingsFile.write(docFreqBytes, 0, docFreqBytes.length);
 
 				int lastDocId = 0;
-				for (PositionalPosting positionalPosting : postings) {
-					
-					int docId = positionalPosting.getDocumentId();
-					
-					// System.out.println("Document Id : " + docId + " postings hashcode : " + positionalPosting.getPositions().toString() + " positions size : " + positionalPosting.getPositions().size());
-					
-					// encode a gap, not a docID
-					byte[] docIdBytes = ByteBuffer.allocate(4).putInt(docId - lastDocId).array(); 
-					postingsFile.write(docIdBytes, 0, docIdBytes.length);
-					
-					/**
-					 * Get the list of positions where this term occurs in the document and then write all the positions. 
-					 * No need to encode positions as gaps. Even in the worst case scenario, a document will not contain the same word 
-					 * repeated (Integer.MAX_VALUE) number of times
-					 */	
-					
-					// Get the term frequency i.e. the number of times this particular terms occurs in this docId
-					int termFrequency = positionalPosting.getPositions().size();
-					
-					// for this term calculate the square of wdt for all the docs in the postings
-					// add the square of wdt to the corresponding doc in the HashMap
-					double wdt = 1 + Math.log(termFrequency);					
-					
-					if (docWeights.containsKey(positionalPosting.getDocumentId())) {						
-						docWeights.put(positionalPosting.getDocumentId(), docWeights.get(positionalPosting.getDocumentId()) + Math.pow(wdt, 2));
-					} else {
-						docWeights.put(positionalPosting.getDocumentId(), Math.pow(wdt, 2));
-					}				
-					
-					// Convert the double representation of the wdt into its corresponding byteFrequency
-					byte[] wdtBytes = ByteBuffer.allocate(8).putDouble(wdt).array(); 
-					
-					// Write the byte representation of the wdt into the file
-					postingsFile.write(wdtBytes, 0, wdtBytes.length);
-					
-					// Convert the integer representation of the termFrequency into its corresponding byteFrequency
-					byte[] termFreqBytes = ByteBuffer.allocate(4).putInt(termFrequency).array(); 
-					
-					// Write the byte representation of the term frequency into the file
-					postingsFile.write(termFreqBytes, 0, termFreqBytes.length);
-					
-					for (Integer pos : positionalPosting.getPositions()) {
-						byte[] posBytes = ByteBuffer.allocate(4).putInt(pos).array(); 
-						postingsFile.write(posBytes, 0, posBytes.length);
+				
+				if (indexType == DiskIndexEnum.POSITIONAL_INDEX) {
+					for (PositionalPosting positionalPosting : (List<PositionalPosting>) postings) {
+						
+						int docId = positionalPosting.getDocumentId();
+						
+						// System.out.println("Document Id : " + docId + " postings hashcode : " + positionalPosting.getPositions().toString() + " positions size : " + positionalPosting.getPositions().size());
+						
+						// encode a gap, not a docID
+						byte[] docIdBytes = ByteBuffer.allocate(4).putInt(docId - lastDocId).array(); 
+						postingsFile.write(docIdBytes, 0, docIdBytes.length);
+						
+						/**
+						 * Get the list of positions where this term occurs in the document and then write all the positions. 
+						 * No need to encode positions as gaps. Even in the worst case scenario, a document will not contain the same word 
+						 * repeated (Integer.MAX_VALUE) number of times
+						 */	
+						
+						// Get the term frequency i.e. the number of times this particular terms occurs in this docId
+						int termFrequency = positionalPosting.getPositions().size();
+						
+						// for this term calculate the square of wdt for all the docs in the postings
+						// add the square of wdt to the corresponding doc in the HashMap
+						double wdt = 1 + Math.log(termFrequency);					
+						
+						if (docWeights.containsKey(positionalPosting.getDocumentId())) {						
+							docWeights.put(positionalPosting.getDocumentId(), docWeights.get(positionalPosting.getDocumentId()) + Math.pow(wdt, 2));
+						} else {
+							docWeights.put(positionalPosting.getDocumentId(), Math.pow(wdt, 2));
+						}				
+						
+						// Convert the double representation of the wdt into its corresponding byteFrequency
+						byte[] wdtBytes = ByteBuffer.allocate(8).putDouble(wdt).array(); 
+						
+						// Write the byte representation of the wdt into the file
+						postingsFile.write(wdtBytes, 0, wdtBytes.length);
+						
+						// Convert the integer representation of the termFrequency into its corresponding byteFrequency
+						byte[] termFreqBytes = ByteBuffer.allocate(4).putInt(termFrequency).array(); 
+						
+						// Write the byte representation of the term frequency into the file
+						postingsFile.write(termFreqBytes, 0, termFreqBytes.length);
+						
+						for (Integer pos : positionalPosting.getPositions()) {
+							byte[] posBytes = ByteBuffer.allocate(4).putInt(pos).array(); 
+							postingsFile.write(posBytes, 0, posBytes.length);
+						}
+						lastDocId = docId;
 					}
-					lastDocId = docId;
+				} else if (indexType == DiskIndexEnum.BI_WORD_INDEX) {
+					for (int docId : (List<Integer>) postings) {
+						byte[] docIdBytes = ByteBuffer.allocate(4).putInt(docId - lastDocId).array(); 
+						postingsFile.write(docIdBytes, 0, docIdBytes.length);
+						lastDocId = docId;
+					}
 				}
-				vocabI++;
+				vocabIndex++;
 			}
 			
 			// Create docWeights.bin file
-			saveDocumentWeightsOnDisk(folder, docWeights);
+			if (indexType == DiskIndexEnum.POSITIONAL_INDEX) {
+				saveDocumentWeightsOnDisk(folder, docWeights);
+			}
 			
 			vocabTable.close();
 			postingsFile.close();

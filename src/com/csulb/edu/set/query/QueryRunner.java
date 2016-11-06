@@ -37,7 +37,7 @@ public class QueryRunner {
 	 *             when query input is invalid
 	 */
 	public static List<Integer> runBooleanQueries(String queryInput, Index<PositionalPosting> invertedIndex,
-			BiWordIndex biWordIndex, KGramIndex kGramIndex) throws InvalidQueryException {
+			Index<Integer> biWordIndex, KGramIndex kGramIndex) throws InvalidQueryException {
 		System.out.println("Running the query");
 		List<Integer> docIds = new ArrayList<Integer>();
 		// parse query input into a list of query objects
@@ -54,7 +54,7 @@ public class QueryRunner {
 	
 	
 	public static List<RankedDocument> runRankedQueries(String queryInput, Index<PositionalPosting> invertedIndex,
-			BiWordIndex biWordIndex, KGramIndex kGramIndex) throws InvalidQueryException {
+			Index<Integer> biWordIndex, KGramIndex kGramIndex) throws InvalidQueryException {
 		System.out.println("Running the query");
 		
 		int k = 10;
@@ -147,7 +147,7 @@ public class QueryRunner {
 			if (!queryLiteral.isPhrase()) {
 				String word = queryLiteral.getTokens().get(0);
 				String wordRegex = word.replace("*", ".*");
-				if (word.contains("*")) {
+				if (word.contains("*") && kGramIndex != null) {
 					// use K-Gram Index and positional inverted index
 					if (word.charAt(0) != '*'){
 						word = '$' + word;
