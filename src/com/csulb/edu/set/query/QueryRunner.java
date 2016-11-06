@@ -96,12 +96,14 @@ public class QueryRunner {
 				 }
 			 }
 		}
-		
+
 		// Sort the ranked documents in the decreasing order
 		for (RankedDocument rd : rankedDocs.values()) {
+			// Divide Ad by Ld
+			rd.setScoreAccumulator(rd.getScoreAccumulator() / diskInvertedIndex.getDocWeight(rd.getDocumentId()));
 			pQueue.add(rd);
 		}
-		
+
 		// Return the top k documents;
 		for (int i=0; i < k; i++) {
 			rankedDocumentsList.add(pQueue.poll());
