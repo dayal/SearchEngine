@@ -27,6 +27,7 @@ import com.csulb.edu.set.indexes.Index;
 import com.csulb.edu.set.indexes.TokenStream;
 import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.diskindex.DiskBiWordIndex;
+import com.csulb.edu.set.indexes.diskindex.DiskIndexEnum;
 import com.csulb.edu.set.indexes.diskindex.DiskIndexWriter;
 import com.csulb.edu.set.indexes.diskindex.DiskPositionalIndex;
 import com.csulb.edu.set.indexes.kgram.KGramIndex;
@@ -220,26 +221,32 @@ public class SearchOverviewController {
 					this.rankedDocumentsList.clear();
 					
 					/**
-					 * TODO
 					 * Checks if we already have a disk index created.
 					 * If yes then tell the user that a disk index was already created alongwith the timestamp
 					 * and ask him whether he wants to re-create a new index or proceed with the existing index.
 					 */
-					boolean isVocabFilePresent = false;
-					boolean isVocabTablePresent = false;
-					boolean isPostingsFilePresent = false;
-					
-					Path vocab = Paths.get(this.dirPath + "\\vocab.bin");
-					Path postings = Paths.get(this.dirPath + "\\postings.bin");
-					Path vocabTable = Paths.get(this.dirPath + "\\vocabTable.bin");
-					
-					if (vocab.toFile().exists() && !vocab.toFile().isDirectory() && postings.toFile().exists()
-							&& !postings.toFile().isDirectory() && vocabTable.toFile().exists()
-							&& !vocabTable.toFile().isDirectory()) {
+					Path positionalVocab = Paths.get(this.dirPath + "\\" + DiskIndexEnum.POSITIONAL_INDEX.getVocabFileName());
+					Path positionalPostings = Paths.get(this.dirPath + "\\" + DiskIndexEnum.POSITIONAL_INDEX.getPostingsFileName());
+					Path positionalVocabTable = Paths.get(this.dirPath + "\\" + DiskIndexEnum.POSITIONAL_INDEX.getVocabTableFileName());
+					Path biWordVocab = Paths.get(this.dirPath + "\\" + DiskIndexEnum.BI_WORD_INDEX.getVocabFileName());
+					Path biWordPostings = Paths.get(this.dirPath + "\\" + DiskIndexEnum.BI_WORD_INDEX.getPostingsFileName());
+					Path biWordVocabTable = Paths.get(this.dirPath + "\\" + DiskIndexEnum.BI_WORD_INDEX.getVocabTableFileName());
+					Path docWeights = Paths.get(this.dirPath + "\\docWeights.bin");
+					Path kGrams = Paths.get(this.dirPath + "\\kGrams.ser");
+
+					boolean createIndexes = false;
+					if (positionalVocab.toFile().exists() && !positionalVocab.toFile().isDirectory()
+							&& positionalPostings.toFile().exists() && !positionalPostings.toFile().isDirectory()
+							&& positionalVocabTable.toFile().exists() && !positionalVocabTable.toFile().isDirectory()
+							&& biWordVocab.toFile().exists() && !biWordVocab.toFile().isDirectory()
+							&& biWordPostings.toFile().exists() && !biWordPostings.toFile().isDirectory()
+							&& biWordVocabTable.toFile().exists() && !biWordVocabTable.toFile().isDirectory()
+							&& docWeights.toFile().exists() && !docWeights.toFile().isDirectory()
+							&& kGrams.toFile().exists() && !kGrams.toFile().isDirectory()) {
 						
 						BasicFileAttributes attributes = null;
 						try {
-							attributes = Files.readAttributes(postings, BasicFileAttributes.class);
+							attributes = Files.readAttributes(positionalVocab, BasicFileAttributes.class);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -251,13 +258,14 @@ public class SearchOverviewController {
 								+ "update the existing disk index ? ", AlertType.CONFIRMATION);
 						Optional<ButtonType> isUserOk = confirmationBox.showAndWait();
 						
+						// TODO: read vocab from file, set this.vocab and this.corpusVocabSize
 						if (isUserOk.get() == ButtonType.CANCEL) {
-							isVocabFilePresent = true;
-							isVocabTablePresent = true;
-							isPostingsFilePresent = true;
+							createIndexes = true;
 						}					
-					} 
-					if (!isVocabFilePresent && !isPostingsFilePresent && !isVocabTablePresent) {
+					} else {
+						createIndexes = true;
+					}
+					if (createIndexes) {
 						// go ahead and create the new index
 						// Begin creating the index
 						createIndexes(this.dirPath);
@@ -394,6 +402,7 @@ public class SearchOverviewController {
 						this.listView.setVisible(true);
 						this.retrievedRankedDocumentsTable.setVisible(false);
 					} else {
+						this.rankedDocumentsList.clear();
 						rankedDocuments = QueryRunner.runRankedQueries(queryString, pInvertedIndex, kGramIndex, fileNames.size());
 						// Show an info box saying no results found
 						if (rankedDocuments.isEmpty()) {
