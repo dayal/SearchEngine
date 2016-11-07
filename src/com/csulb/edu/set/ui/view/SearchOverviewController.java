@@ -394,7 +394,7 @@ public class SearchOverviewController {
 						this.listView.setVisible(true);
 						this.retrievedRankedDocumentsTable.setVisible(false);
 					} else {
-						rankedDocuments = QueryRunner.runRankedQueries(queryString, pInvertedIndex, biWordIndex, kGramIndex, fileNames.size());
+						rankedDocuments = QueryRunner.runRankedQueries(queryString, pInvertedIndex, kGramIndex, fileNames.size());
 						// Show an info box saying no results found
 						if (rankedDocuments.isEmpty()) {
 							showAlertBox("Sorry. Your search results does not fetch any documents from the corpus", AlertType.INFORMATION);
