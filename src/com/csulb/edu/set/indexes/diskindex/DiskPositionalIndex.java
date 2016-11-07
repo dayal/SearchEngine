@@ -15,7 +15,6 @@ import com.csulb.edu.set.indexes.pii.PositionalPosting;
 public class DiskPositionalIndex extends DiskIndex<PositionalPosting> {
 
 	private RandomAccessFile mDocWeights;
-	private long[] mVocabTable;
 
 	public DiskPositionalIndex(String path) {
 		try {

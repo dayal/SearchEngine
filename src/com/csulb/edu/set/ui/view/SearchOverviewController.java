@@ -16,7 +16,9 @@ import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.csulb.edu.set.MainApp;
@@ -64,6 +66,9 @@ public class SearchOverviewController {
 	/**
 	 * Holds the documents returned as result of query
 	 */
+	
+	// List of documents that matches the search query
+	private ObservableList<Document> rankedDocumentsList;
 	
 	// List of documents that matches the search query
 	private ObservableList<String> documents;
@@ -122,7 +127,7 @@ public class SearchOverviewController {
 	private TableColumn<Document, String> documentNameColumn;
 	
 	@FXML
-	private TableColumn<Document, Float> documentScoreColumn;
+	private TableColumn<Document, String> documentScoreColumn;
 	
 	private boolean doBooleanQuery = true;
 
@@ -212,6 +217,7 @@ public class SearchOverviewController {
 					this.listView.getItems().clear();
 					this.vocab.clear();
 					this.documents.clear();
+					this.rankedDocumentsList.clear();
 					
 					/**
 					 * TODO
@@ -291,16 +297,24 @@ public class SearchOverviewController {
 	private void toggleQueryMode(ActionEvent event) {
 		if (booleanRetrieval.isSelected()) {
 			this.doBooleanQuery = true;
+			
+			// Checks if for the current query we already fetched the results
+			// then just display the corresponding table
+			/*if (this.userQuery.getText() != null && !this.userQuery.getText().isEmpty()) {
+				this.searchCorpus();
+			}
+			
+			this.retrievedRankedDocumentsTable.setVisible(false);
+			this.listView.setVisible(true);	*/		
 		} else {
 			this.doBooleanQuery = false;
+			
+			// Checks if for the current query we already fetched the results
+			// then just display the corresponding table
+			/**/
 		}
 	}
-
-	@FXML
-	private void indexNewDirectory() {
-		promptUserForDirectoryToIndex();
-	}
-
+	
 	/**
 	 * Called when the user clicks on the search button.
 	 */
@@ -308,7 +322,7 @@ public class SearchOverviewController {
 	private void searchCorpus() {
 		// Get the query entered by the user in the query text box in the
 		// queryString variable
-		String queryString = userQuery.getText();
+		String queryString = this.userQuery.getText();
 
 		// Check if the user has actually entered a query. If it is blank ask
 		// the user to enter a query
@@ -370,26 +384,46 @@ public class SearchOverviewController {
 						}
 						
 						for (int docId : docIds) {
-							documents.add(fileNames.get(docId));
+							documents.add(this.fileNames.get(docId));
 						}
+						
+						this.listView.setItems(documents);
+						this.listView.scrollTo(0);
+						
+						// Display the listview and hides the rankedDocumentsTableView
+						this.listView.setVisible(true);
+						this.retrievedRankedDocumentsTable.setVisible(false);
 					} else {
-						rankedDocuments = QueryRunner.runRankedQueries(queryString, pInvertedIndex, biWordIndex, this.kGramIndex, documents.size());
+						rankedDocuments = QueryRunner.runRankedQueries(queryString, pInvertedIndex, biWordIndex, kGramIndex, fileNames.size());
 						// Show an info box saying no results found
 						if (rankedDocuments.isEmpty()) {
 							showAlertBox("Sorry. Your search results does not fetch any documents from the corpus", AlertType.INFORMATION);
 						}
+						
+						for (RankedDocument rd : rankedDocuments) {
+							Document doc = new Document(this.fileNames.get(rd.getDocumentId()), rd.getScoreAccumulator());
+							rankedDocumentsList.add(doc);
+						}
+						this.retrievedRankedDocumentsTable.setItems(rankedDocumentsList);
+						this.retrievedRankedDocumentsTable.scrollTo(0);
+						
+						// Display the rankedDocumentsTableView and hides the listView
+						this.listView.setVisible(false);
+						this.retrievedRankedDocumentsTable.setVisible(true);
 					}
 										
-					numberOfDocsMatchingQuery.setText("Total documents found for this query = "+docIds.size());
+					if (doBooleanQuery) {
+						numberOfDocsMatchingQuery.setText("Total documents found for this query = "+ docIds.size());
+					} else {
+						numberOfDocsMatchingQuery.setText("Total documents found for this query = "+ rankedDocumentsList.size());
+					}
 					if (!this.numberOfDocsMatchingQuery.isVisible()) this.numberOfDocsMatchingQuery.setVisible(true);
 					
 					
 				} catch (InvalidQueryException e) {
 					// Show an Error Alert box saying the Query is invalid
 					showAlertBox("Invalid Query Format. Kindly re enter the query", AlertType.ERROR);
-				}
-				listView.setItems(documents);
-				listView.scrollTo(0);
+				}				
 			} else {
 				/**
 				 * TODO
@@ -418,7 +452,7 @@ public class SearchOverviewController {
 	 */
 	@FXML
 	private void findStem() {
-		System.out.println("Findnig the stem");
+		System.out.println("Finding the stem");
 
 		// Fetch the word entered by the user in the textbox
 		String word = userQuery.getText();
@@ -562,6 +596,28 @@ public class SearchOverviewController {
 	@FXML
 	private void initialize() {
 
+		// Initialize the ranked documents table with the two columns.
+		documentNameColumn.setCellValueFactory(cellData -> cellData.getValue().documentNameProperty());
+		documentScoreColumn.setCellValueFactory(cellData -> cellData.getValue().documentScoreProperty().asString());
+		
+		// Clear person details.
+		// showPersonDetails(null);
+
+		// Listen for selection changes and show the person details when
+		// changed.
+		retrievedRankedDocumentsTable.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+			if (event.getClickCount() == 2) {
+				SelectionModel<Document> selectionModel = retrievedRankedDocumentsTable.getSelectionModel();
+				Document docSelected = selectionModel.getSelectedItem();
+				if (docSelected.getDocumentName().contains("json")) {
+					this.jsonBodyContents.setText(Utils.getDocumentText(dirPath + "\\" + docSelected.getDocumentName()));
+				}
+			}
+		});
+		
+		/*retrievedRankedDocumentsTable.getSelectionModel().selectedItemProperty()
+				.addListener((observable, oldValue, newValue) -> displayDocumentContents(newValue));*/
+
 		// Attach an event listener to the list items which handles the click on the list items that contains the document names 
 		// as part of the search query result
 		listView.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
@@ -575,12 +631,19 @@ public class SearchOverviewController {
 		});
 
 	}
+	
+	@FXML
+	private void indexNewDirectory() {
+		promptUserForDirectoryToIndex();
+	}
 
 	/**
 	 * The constructor. The constructor is called before the initialize()
 	 * method.
 	 */
 	public SearchOverviewController() {
+		retrievedRankedDocumentsTable = new TableView<Document>();
+		rankedDocumentsList = FXCollections.observableArrayList();
 		documents = FXCollections.observableArrayList();
 		listView = new ListView<String>();
 		vocab = FXCollections.observableArrayList();

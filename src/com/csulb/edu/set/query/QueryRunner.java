@@ -73,7 +73,8 @@ public class QueryRunner {
 			 for (QueryLiteral queryLiterals : query.getQueryLiterals()) {
 				 for (String term : queryLiterals.getTokens()) {
 					 
-					 List<PositionalPosting> termPostingsList = diskPositionalIndex.getPostings(term);
+					 List<PositionalPosting> termPostingsList = diskPositionalIndex.getPostings(PorterStemmer
+								.processToken(term));
 					 
 					 // Calculate wqt for this term
 					 double wqt = Math.log((1 + (corpusSize / termPostingsList.size())));
@@ -104,6 +105,7 @@ public class QueryRunner {
 		}
 
 		// Return the top k documents;
+		k = Math.min(k, pQueue.size());
 		for (int i=0; i < k; i++) {
 			rankedDocumentsList.add(pQueue.poll());
 		}
