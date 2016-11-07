@@ -14,11 +14,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import com.csulb.edu.set.MainApp;
@@ -269,11 +266,11 @@ public class SearchOverviewController {
 						// go ahead and create the new index
 						// Begin creating the index
 						createIndexes(this.dirPath);
-						this.numberOfDocsIndexed.setText("Total documents indexed = " + fileNames.size());
+						/*this.numberOfDocsIndexed.setText("Total documents indexed = " + fileNames.size());
 						// Displaying a message about the total number of words in the vocabulary
 						this.vocab.clear();
 						this.vocab.addAll(Arrays.asList(this.pInvertedIndex.getDictionary()));
-						this.corpusVocabSize.setText("Size of Corpus Vocabulary is : " + this.vocab.size());
+						this.corpusVocabSize.setText("Size of Corpus Vocabulary is : " + this.vocab.size());*/
 					}
 					
 					// Show the search app window 
@@ -296,12 +293,19 @@ public class SearchOverviewController {
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-					}					
+					}
+					
+					
+					// Displaying a message about the total number of words in the vocabulary
+					this.vocab.clear();
+					this.vocab.addAll(((DiskPositionalIndex)this.diskInvertedIndex).getCorpusVocabularyFromDisk());
+					this.corpusVocabSize.setText("Size of Corpus Vocabulary is : " + this.vocab.size());
 					
 					// Initializing the fileNames array
 					if (this.fileNames != null && this.fileNames.isEmpty()) {
 						this.fileNames = Utils.readFileNames(this.dirPath);
 					}
+					this.numberOfDocsIndexed.setText("Size of the corpus = " + this.fileNames.size());
 					
 				} else {
 					Alert invalidDirectoryPathAlert = showAlertBox("Invalid Directory path! Please enter a valid directory", AlertType.ERROR);
@@ -462,6 +466,10 @@ public class SearchOverviewController {
 	 */
 	@FXML
 	private void printVocabulary() {
+		
+		this.retrievedRankedDocumentsTable.setVisible(false);
+		this.listView.setVisible(true);
+		
 		// Prints all the terms in the dictionary of corpus
 		this.numberOfDocsMatchingQuery.setText("");
 		listView.setItems(vocab);

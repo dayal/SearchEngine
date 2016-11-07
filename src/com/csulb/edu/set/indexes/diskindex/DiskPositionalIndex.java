@@ -17,6 +17,7 @@ public class DiskPositionalIndex extends DiskIndex<PositionalPosting> {
 	private RandomAccessFile mDocWeights;
 
 	public DiskPositionalIndex(String path) {
+		super();
 		try {
 			mVocabList = new RandomAccessFile(new File(path, DiskIndexEnum.POSITIONAL_INDEX.getVocabFileName()), "r");
 			mPostings = new RandomAccessFile(new File(path, DiskIndexEnum.POSITIONAL_INDEX.getPostingsFileName()), "r");
@@ -180,4 +181,24 @@ public class DiskPositionalIndex extends DiskIndex<PositionalPosting> {
 		}
 		return 0;
 	}
+	
+	public List<String> getCorpusVocabularyFromDisk() {
+		List<String> vocab = new ArrayList<String>();
+		for (int loc = 0; loc < mVocabTable.length/2 - 1; loc++) {
+			int termLength = (int) (mVocabTable[(loc + 1) * 2] - mVocabTable[loc * 2]);
+
+			byte[] buffer = new byte[termLength];
+			try {
+				mVocabList.read(buffer, 0, termLength);
+				String term = new String(buffer, "ASCII");
+				
+				vocab.add(term);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}			
+		}		
+		return vocab;
+	}
+	
 }
