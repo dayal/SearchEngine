@@ -24,15 +24,15 @@ public class DiskIndexWriter {
 		}
 	}
 	
-	public static void storeBiWordIndexOnDisk(String dirLocation, BiWordIndex biWordIndex) {
+	public static void storeBiWordIndexOnDisk(String dirLocation, BiWordIndex biWordIndex, int corpusSize) {
 		String[] dictionary = biWordIndex.getDictionary();
 		long[] vocabPositions = new long[dictionary.length];
 		buildVocabFile(dirLocation, dictionary, vocabPositions, DiskIndexEnum.BI_WORD_INDEX);
-		buildPostingsFile(dirLocation, biWordIndex, dictionary, vocabPositions, DiskIndexEnum.BI_WORD_INDEX);
+		buildPostingsFile(dirLocation, biWordIndex, dictionary, vocabPositions, DiskIndexEnum.BI_WORD_INDEX, corpusSize);
 		
 	}
 	
-	public static void saveDocumentWeightsOnDisk(String dirLocation, Map<Integer, Double> docWeights) {
+	public static void saveDocumentWeightsOnDisk(String dirLocation, Map<Integer, Double> docWeights, int corpusSize) {
 		
 		FileOutputStream weights = null;
 		try {
@@ -41,8 +41,8 @@ public class DiskIndexWriter {
 			// also build an array associating each term with its byte location
 			// in this file.
 			weights = new FileOutputStream(new File(dirLocation, "docWeights.bin"));
-			for (int i = 0; i < docWeights.size(); i++) {
-				 byte[] buffer = ByteBuffer.allocate(8).putDouble(Math.sqrt(docWeights.get(i))).array();
+			for (int i = 0; i < corpusSize; i++) {
+				 byte[] buffer = ByteBuffer.allocate(8).putDouble(docWeights.get(i) != null ? Math.sqrt(docWeights.get(i)) : 0).array();
 				 weights.write(buffer, 0, buffer.length);
 			}
 		} catch (Exception ex) {
@@ -50,7 +50,7 @@ public class DiskIndexWriter {
 		}
 	}
 	
-	public static void buildPositionalIndexOnDisk(String dirLocation, PositionalInvertedIndex pInvertedIndex) {
+	public static void buildPositionalIndexOnDisk(String dirLocation, PositionalInvertedIndex pInvertedIndex, int corpusSize) {
 
 		// at this point, "index" contains the in-memory inverted index. Now we save the index to disk, building the below three files:
 		// 1. vocab.bin -> stores all the vocabulary terms in ASCII format
@@ -63,7 +63,7 @@ public class DiskIndexWriter {
 		long[] vocabPositions = new long[dictionary.length];
 
 		buildVocabFile(dirLocation, dictionary, vocabPositions, DiskIndexEnum.POSITIONAL_INDEX);
-		buildPostingsFile(dirLocation, pInvertedIndex, dictionary, vocabPositions, DiskIndexEnum.POSITIONAL_INDEX);
+		buildPostingsFile(dirLocation, pInvertedIndex, dictionary, vocabPositions, DiskIndexEnum.POSITIONAL_INDEX, corpusSize);
 	}
 	
 	/**
@@ -123,7 +123,7 @@ public class DiskIndexWriter {
 	 * @param <T>
 	 */
 	@SuppressWarnings("unchecked")
-	private static <T> void buildPostingsFile(String folder, Index<T> pIndex, String[] dictionary, long[] vocabPositions, DiskIndexEnum indexType) {
+	private static <T> void buildPostingsFile(String folder, Index<T> pIndex, String[] dictionary, long[] vocabPositions, DiskIndexEnum indexType, int corpusSize) {
 		
 		FileOutputStream postingsFile = null;
 		Map<Integer, Double> docWeights = new HashMap<Integer, Double>();
@@ -264,7 +264,7 @@ public class DiskIndexWriter {
 			
 			// Create docWeights.bin file
 			if (indexType == DiskIndexEnum.POSITIONAL_INDEX) {
-				saveDocumentWeightsOnDisk(folder, docWeights);
+				saveDocumentWeightsOnDisk(folder, docWeights, corpusSize);
 			}
 			
 			vocabTable.close();

@@ -84,7 +84,7 @@ public class QueryRunner {
 			List<PositionalPosting> termPostingsList = diskPositionalIndex.getPostings(PorterStemmer.processToken(term));
 			 
 			 // Calculate wqt for this term
-			 double wqt = Math.log((1 + (corpusSize / termPostingsList.size())));
+			 double wqt = Math.log((1 + ((double) corpusSize / termPostingsList.size())));
 			 
 			 for (PositionalPosting pPosting : termPostingsList) {
 				 double newScore = 0;
