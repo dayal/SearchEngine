@@ -2,8 +2,17 @@ package com.csulb.edu.set.utils;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.csulb.edu.set.indexes.SimpleTokenStream;
 import com.csulb.edu.set.indexes.TokenStream;
@@ -82,22 +91,42 @@ public class Utils {
 		}
 		
 		return "Unable to read the json file "+docLocation;
-		
-		/*Reader reader = null;
+	}
+	
+	public static List<String> readFileNames(String indexName) {
 		try {
-			reader = new FileReader(docLocation);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		JsonElement element = jsonParser.parse(reader);
-		
-		String bodyContents = "";
+			final List<String> names = new ArrayList<String>();
+			final Path currentWorkingPath = Paths.get(indexName).toAbsolutePath();
 
-		if (element.isJsonObject()) {
-			JsonObject doc = element.getAsJsonObject();
-			bodyContents = doc.get("body").getAsString();
+			Files.walkFileTree(currentWorkingPath, new SimpleFileVisitor<Path>() {
+
+				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+					// make sure we only process the current working directory
+					if (currentWorkingPath.equals(dir)) {
+						return FileVisitResult.CONTINUE;
+					}
+					return FileVisitResult.SKIP_SUBTREE;
+				}
+
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+					// only process .txt files
+					if (file.toString().endsWith(".json")) {
+						names.add(file.toFile().getName());
+					}
+					return FileVisitResult.CONTINUE;
+				}
+
+				// don't throw exceptions if files are locked/other errors occur
+				public FileVisitResult visitFileFailed(Path file, IOException e) {
+
+					return FileVisitResult.CONTINUE;
+				}
+
+			});
+			return names;
+		} catch (IOException ex) {
+			System.out.println(ex.toString());
 		}
-		
-		return bodyContents;*/
+		return null;
 	}
 }

@@ -10,7 +10,6 @@ import java.util.Set;
 
 import com.csulb.edu.set.exception.InvalidQueryException;
 import com.csulb.edu.set.indexes.Index;
-import com.csulb.edu.set.indexes.biword.BiWordIndex;
 import com.csulb.edu.set.indexes.diskindex.DiskPositionalIndex;
 import com.csulb.edu.set.indexes.kgram.KGramIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
@@ -54,7 +53,7 @@ public class QueryRunner {
 	
 	
 	public static List<RankedDocument> runRankedQueries(String queryInput, Index<PositionalPosting> invertedIndex,
-			Index<Integer> biWordIndex, KGramIndex kGramIndex) throws InvalidQueryException {
+			Index<Integer> biWordIndex, KGramIndex kGramIndex, int corpusSize) throws InvalidQueryException {
 		System.out.println("Running the query");
 		
 		int k = 10;
@@ -63,7 +62,7 @@ public class QueryRunner {
 		
 		List<RankedDocument> rankedDocumentsList = new ArrayList<RankedDocument>();
 		
-		DiskPositionalIndex diskInvertedIndex = (DiskPositionalIndex) invertedIndex;
+		DiskPositionalIndex diskPositionalIndex = (DiskPositionalIndex) invertedIndex;
 		
 		// parse query input into a list of query objects
 		List<Query> queries = QueryParser.parseQuery(queryInput);
@@ -74,10 +73,10 @@ public class QueryRunner {
 			 for (QueryLiteral queryLiterals : query.getQueryLiterals()) {
 				 for (String term : queryLiterals.getTokens()) {
 					 
-					 List<PositionalPosting> termPostingsList = diskInvertedIndex.getPostings(term);
+					 List<PositionalPosting> termPostingsList = diskPositionalIndex.getPostings(term);
 					 
 					 // Calculate wqt for this term
-					 double wqt = Math.log((1 + (diskInvertedIndex.getFileNames().size() / termPostingsList.size())));
+					 double wqt = Math.log((1 + (corpusSize / termPostingsList.size())));
 					 
 					 for (PositionalPosting pPosting : termPostingsList) {
 						 double newScore = 0;
@@ -100,7 +99,7 @@ public class QueryRunner {
 		// Sort the ranked documents in the decreasing order
 		for (RankedDocument rd : rankedDocs.values()) {
 			// Divide Ad by Ld
-			rd.setScoreAccumulator(rd.getScoreAccumulator() / diskInvertedIndex.getDocWeight(rd.getDocumentId()));
+			rd.setScoreAccumulator(rd.getScoreAccumulator() / diskPositionalIndex.getDocWeight(rd.getDocumentId()));
 			pQueue.add(rd);
 		}
 

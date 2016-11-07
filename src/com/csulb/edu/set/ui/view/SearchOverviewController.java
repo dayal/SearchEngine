@@ -16,9 +16,7 @@ import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import com.csulb.edu.set.MainApp;
@@ -342,7 +340,8 @@ public class SearchOverviewController {
 			Index<PositionalPosting> pInvertedIndex = this.pInvertedIndex;
 			Index<Integer> biWordIndex = this.biWordIndex;
 			// Instantiates an object based on whether the user want to use DiskIndex or InMemoryIndex
-			if (useDiskIndex) {				
+			if (useDiskIndex) {
+				this.fileNames = Utils.readFileNames(this.dirPath);
 				pInvertedIndex = new DiskPositionalIndex(this.dirPath);
 				biWordIndex = new DiskBiWordIndex(this.dirPath);
 				// read kGramIndex from file
@@ -372,19 +371,13 @@ public class SearchOverviewController {
 						
 						for (int docId : docIds) {
 							documents.add(fileNames.get(docId));
-							//System.out.println(fileNames.get(docId));
 						}
 					} else {
-						rankedDocuments = QueryRunner.runRankedQueries(queryString, pInvertedIndex, biWordIndex, this.kGramIndex);
+						rankedDocuments = QueryRunner.runRankedQueries(queryString, pInvertedIndex, biWordIndex, this.kGramIndex, documents.size());
 						// Show an info box saying no results found
 						if (rankedDocuments.isEmpty()) {
 							showAlertBox("Sorry. Your search results does not fetch any documents from the corpus", AlertType.INFORMATION);
 						}
-						
-						/*for (int docId : docIds) {
-							documents.add(fileNames.get(docId));
-							//System.out.println(fileNames.get(docId));
-						}*/
 					}
 										
 					numberOfDocsMatchingQuery.setText("Total documents found for this query = "+docIds.size());
@@ -454,7 +447,6 @@ public class SearchOverviewController {
 	 * Saving the In-Memory index on disk
 	 */
 	private void saveIndexesOnDisk() {
-		// TODO Auto-generated method stub
 		
 		// Persist the PositionalInvertedIndex on disk
 		DiskIndexWriter.buildPositionalIndexOnDisk(this.dirPath, this.pInvertedIndex);
@@ -499,14 +491,8 @@ public class SearchOverviewController {
 				}
 
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-					// only process .json files
-					//System.out.println(file.toString());
+
 					if (file.toString().endsWith(".json")) {
-						// we have found a .json file; add its name to the fileName
-						// list,
-						// then index the file and increase the document ID counter.
-						// System.out.println("Indexing file " +
-						// file.getFileName());
 
 						fileNames.add(file.getFileName().toString());
 
@@ -517,9 +503,6 @@ public class SearchOverviewController {
 						} catch (FileNotFoundException e) {
 							e.printStackTrace();
 						}
-						
-						// Create a hashmap to count term frequency
-						Map<String, Integer> termFreq = new HashMap<String, Integer>();
 						
 						TokenStream tokenStream = Utils.getTokenStreams(in);
 						
@@ -547,25 +530,10 @@ public class SearchOverviewController {
 								biWordIndex.addTerm(PorterStemmer.processToken(Utils.removeHyphens(prevToken))
 										+ PorterStemmer.processToken(Utils.removeHyphens(token)), mDocumentID);
 							}
-							
-							// Add to the termFrequency
-							/*if (termFreq.containsKey(PorterStemmer.processToken(token))) {
-								//int freq = termFreq.get(PorterStemmer.processToken(token)) + 1;
-								termFreq.put(PorterStemmer.processToken(token), termFreq.get(PorterStemmer.processToken(token)) + 1);
-							} else {
-								termFreq.put(PorterStemmer.processToken(token), 1);
-							}		*/					
+		
 							prevToken = token;
 							position++;
 						}
-						
-						// Calculate Ld for this document and store it in the docWeights arraylist
-						/*double sum = 0;
-						for (Integer tf : termFreq.values()) {
-							double wt = 1 + Math.log10(tf);							
-							sum = sum + Math.pow(wt, 2);
-						}						
-						docWeights.add(Math.sqrt(sum));*/						
 						mDocumentID++;
 					}
 					return FileVisitResult.CONTINUE;

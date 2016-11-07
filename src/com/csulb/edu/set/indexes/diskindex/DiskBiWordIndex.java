@@ -5,30 +5,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.csulb.edu.set.indexes.Index;
-
-public class DiskBiWordIndex extends Index<Integer> {
-
-	private RandomAccessFile mVocabList;
-	private RandomAccessFile mPostings;
-	private long[] mVocabTable;
-	private List<String> mFileNames;
+public class DiskBiWordIndex extends DiskIndex<Integer> {
 
 	public DiskBiWordIndex(String path) {
 		try {
 			mVocabList = new RandomAccessFile(new File(path, DiskIndexEnum.BI_WORD_INDEX.getVocabFileName()), "r");
 			mPostings = new RandomAccessFile(new File(path, DiskIndexEnum.BI_WORD_INDEX.getPostingsFileName()), "r");
 			mVocabTable = readVocabTable(path);
-			mFileNames = readFileNames(path);
 		} catch (FileNotFoundException ex) {
 			System.out.println(ex.toString());
 		}
@@ -41,7 +27,7 @@ public class DiskBiWordIndex extends Index<Integer> {
 		}
 		return null;
 	}
-
+	
 	private static List<Integer> readPostingsFromFile(RandomAccessFile postings, long postingsPosition) {
 		try {
 			// initialize the array that will hold the postings.
@@ -88,85 +74,6 @@ public class DiskBiWordIndex extends Index<Integer> {
 		return null;
 	}
 
-	/**
-	 * Search the vocab.bin file for the corresponding term.
-	 * 
-	 * @param term
-	 * @return
-	 */
-	private long binarySearchVocabulary(String term) {
-		// do a binary search over the vocabulary, using the vocabTable and the
-		// file vocabList.
-		int i = 0, j = mVocabTable.length / 2 - 1;
-		while (i <= j) {
-			try {
-				int m = (i + j) / 2;
-				long vListPosition = mVocabTable[m * 2];
-				int termLength;
-				if (m == mVocabTable.length / 2 - 1) {
-					termLength = (int) (mVocabList.length() - mVocabTable[m * 2]);
-				} else {
-					termLength = (int) (mVocabTable[(m + 1) * 2] - vListPosition);
-				}
-
-				mVocabList.seek(vListPosition);
-
-				byte[] buffer = new byte[termLength];
-				mVocabList.read(buffer, 0, termLength);
-				String fileTerm = new String(buffer, "ASCII");
-
-				int compareValue = term.compareTo(fileTerm);
-				if (compareValue == 0) {
-					// found it!
-					return mVocabTable[m * 2 + 1];
-				} else if (compareValue < 0) {
-					j = m - 1;
-				} else {
-					i = m + 1;
-				}
-			} catch (IOException ex) {
-				System.out.println(ex.toString());
-			}
-		}
-		return -1;
-	}
-
-	private static List<String> readFileNames(String indexName) {
-		try {
-			final List<String> names = new ArrayList<String>();
-			final Path currentWorkingPath = Paths.get(indexName).toAbsolutePath();
-
-			Files.walkFileTree(currentWorkingPath, new SimpleFileVisitor<Path>() {
-
-				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-					// make sure we only process the current working directory
-					if (currentWorkingPath.equals(dir)) {
-						return FileVisitResult.CONTINUE;
-					}
-					return FileVisitResult.SKIP_SUBTREE;
-				}
-
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-					// only process .txt files
-					if (file.toString().endsWith(".json")) {
-						names.add(file.toFile().getName());
-					}
-					return FileVisitResult.CONTINUE;
-				}
-
-				// don't throw exceptions if files are locked/other errors occur
-				public FileVisitResult visitFileFailed(Path file, IOException e) {
-
-					return FileVisitResult.CONTINUE;
-				}
-
-			});
-			return names;
-		} catch (IOException ex) {
-			System.out.println(ex.toString());
-		}
-		return null;
-	}
 
 	private static long[] readVocabTable(String indexName) {
 		try {
@@ -194,7 +101,7 @@ public class DiskBiWordIndex extends Index<Integer> {
 			// postings list entry <df, docId, tf, pos1, ....> for this term
 			// begins in the postings file
 
-			// That's why the size should be multiplied by 2
+			// That's why the size shogetTermCountuld be multiplied by 2
 			vocabTable = new long[ByteBuffer.wrap(byteBuffer).getInt() * 2];
 
 			int tableIndex = 0;
@@ -214,13 +121,5 @@ public class DiskBiWordIndex extends Index<Integer> {
 			System.out.println(ex.toString());
 		}
 		return null;
-	}
-
-	public List<String> getFileNames() {
-		return mFileNames;
-	}
-
-	public int getTermCount() {
-		return mVocabTable.length / 2;
 	}
 }

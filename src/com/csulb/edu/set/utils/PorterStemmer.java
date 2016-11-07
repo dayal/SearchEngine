@@ -179,16 +179,4 @@ public class PorterStemmer {
 
 		return token;
 	}
-
-	public static void main(String[] args) {
-		// System.out.println(mGr1);
-		String[] strings = { "cats", "feed", "agreed", "plastered", "bled", "motoring", "sing", "conflated", "troubled",
-				"sized", "hopping", "tanned", "falling", "hissing", "hizzed", "failing", "filing", "happy", "sky",
-				"probate", "rate", "cease", "controll", "roll", "activate", "replicate", "rational", "organization",
-				"organize", "organizer", "really", "reed", "red", "argument" };
-		for (String string : strings) {
-			System.out.println(PorterStemmer.processToken(string));
-		}
-
-	}
 }
