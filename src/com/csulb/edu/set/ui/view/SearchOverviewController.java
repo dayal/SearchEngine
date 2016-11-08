@@ -629,7 +629,7 @@ public class SearchOverviewController {
 									mDocumentID);
 							if (prevToken != null) {
 								biWordIndex.addTerm(PorterStemmer.processToken(Utils.removeHyphens(prevToken))
-										+ PorterStemmer.processToken(Utils.removeHyphens(token)), mDocumentID);
+										+ " " + PorterStemmer.processToken(Utils.removeHyphens(token)), mDocumentID);
 							}
 		
 							prevToken = token;

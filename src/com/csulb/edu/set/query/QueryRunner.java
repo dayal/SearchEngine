@@ -190,7 +190,7 @@ public class QueryRunner {
 			} else if (queryLiteral.isPhrase() && queryLiteral.getTokens().size() == 2) {
 				// use bi-word index for 2-word-phrases
 				List<Integer> postings = biWordIndex.getPostings(
-						PorterStemmer.processToken(queryLiteral.getTokens().get(0)) + PorterStemmer
+						PorterStemmer.processToken(queryLiteral.getTokens().get(0)) + " " + PorterStemmer
 								.processToken(queryLiteral.getTokens().get(1)));
 				if (postings != null) {
 					docIds.addAll(postings);
