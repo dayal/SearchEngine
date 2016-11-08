@@ -289,7 +289,7 @@ public class SearchOverviewController {
 						public void run() {
 							diskInvertedIndex = new DiskPositionalIndex(dirPath);
 							diskBiWordIndex = new DiskBiWordIndex(dirPath);
-							if (kGramIndex != null) {
+							if (kGramIndex == null) {
 								try {
 									ObjectInputStream kGramInputStream = new ObjectInputStream(
 											new FileInputStream(new File(dirPath, "kGrams.ser")));

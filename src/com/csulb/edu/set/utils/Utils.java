@@ -46,7 +46,7 @@ public class Utils {
 	 */
 	public static String processWord(String word, boolean removeHyphens) {
 		word = word.trim().replaceAll(specialCharsRegexStart, "").replaceAll(specialCharsRegexEnd, "").replaceAll("'", "");
-		if (removeHyphens) word.replaceAll("-", "");
+		if (removeHyphens) word = word.replaceAll("-", "");
 		return word.toLowerCase();
 	}
 

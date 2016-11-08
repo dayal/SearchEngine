@@ -2,6 +2,7 @@ package com.csulb.edu.set.indexes.diskindex;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.*;
 
 import com.csulb.edu.set.indexes.Index;
@@ -88,7 +89,7 @@ public class DiskIndexWriter {
 			// also build an array associating each term with its byte location
 			// in this file.
 			int vocabIndex = 0;
-			vocabList = new OutputStreamWriter(new FileOutputStream(new File(folder, indexType.getVocabFileName())), "ASCII");
+			vocabList = new OutputStreamWriter(new FileOutputStream(new File(folder, indexType.getVocabFileName())), Charset.forName("UTF-8"));
 
 			int vocabPos = 0;
 			for (String vocabWord : dictionary) {

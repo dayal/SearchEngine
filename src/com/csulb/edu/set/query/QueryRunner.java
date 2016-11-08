@@ -83,6 +83,10 @@ public class QueryRunner {
 		for (String term : terms) {
 			List<PositionalPosting> termPostingsList = diskPositionalIndex.getPostings(PorterStemmer.processToken(term));
 			 
+			if (termPostingsList == null) {
+				System.out.println(term);
+				PorterStemmer.processToken(term);
+			}
 			 // Calculate wqt for this term
 			 double wqt = Math.log((1 + ((double) corpusSize / termPostingsList.size())));
 			 
@@ -300,8 +304,7 @@ public class QueryRunner {
 			    	if (candidate.matches(wordRegex)) candidates.add(Utils.processWord(candidate, true));
 			    }
 			}
-		}
-		
+		}		
 		return candidates;
 	}
 

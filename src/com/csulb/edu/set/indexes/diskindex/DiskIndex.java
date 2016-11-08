@@ -2,6 +2,7 @@ package com.csulb.edu.set.indexes.diskindex;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public abstract class DiskIndex<T> extends Index<T> {
 
 				byte[] buffer = new byte[termLength];
 				mVocabList.read(buffer, 0, termLength);
-				String fileTerm = new String(buffer, "ASCII");
+				String fileTerm = new String(buffer, Charset.forName("UTF-8"));
 
 				int compareValue = term.compareTo(fileTerm);
 				if (compareValue == 0) {

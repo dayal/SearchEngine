@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -198,7 +199,7 @@ public class DiskPositionalIndex extends DiskIndex<PositionalPosting> {
 				byte[] buffer = new byte[termLength];
 
 				mVocabList.read(buffer, 0, termLength);
-				String term = new String(buffer, "ASCII");
+				String term = new String(buffer, Charset.forName("UTF-8"));
 				vocab.add(term);
 			}
 		} catch (IOException e) {
