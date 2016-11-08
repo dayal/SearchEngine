@@ -81,29 +81,30 @@ public class QueryRunner {
 			 }
 		}
 		for (String term : terms) {
-			List<PositionalPosting> termPostingsList = diskPositionalIndex.getPostings(PorterStemmer.processToken(term));
-			 
-			if (termPostingsList == null) {
-				System.out.println(term);
-				PorterStemmer.processToken(term);
+			List<PositionalPosting> termPostingsList = diskPositionalIndex
+					.getPostings(PorterStemmer.processToken(term));
+
+			// potential issue: termPostingsList can be null if term contains non-ASCII characters
+			if (termPostingsList != null) {
+				// Calculate wqt for this term
+				double wqt = Math.log((1 + ((double) corpusSize / termPostingsList.size())));
+
+				for (PositionalPosting pPosting : termPostingsList) {
+					double newScore = 0;
+					RankedDocument rankedDoc = null;
+					if (rankedDocs.containsKey(pPosting.getDocumentId())) {
+						rankedDoc = rankedDocs.get(pPosting.getDocumentId());
+						newScore = rankedDoc.getScoreAccumulator() + (wqt * pPosting.getWdt());
+						rankedDoc.setScoreAccumulator(newScore);
+					} else {
+						newScore = wqt * pPosting.getWdt();
+						rankedDoc = new RankedDocument(pPosting.getDocumentId(), newScore);
+					}
+					rankedDocs.put(pPosting.getDocumentId(), rankedDoc);
+					// pPosting.setScoreAccumulator(pPosting.getScoreAccumulator()
+					// + (wqt * pPosting.getWdt()));
+				}
 			}
-			 // Calculate wqt for this term
-			 double wqt = Math.log((1 + ((double) corpusSize / termPostingsList.size())));
-			 
-			 for (PositionalPosting pPosting : termPostingsList) {
-				 double newScore = 0;
-				 RankedDocument rankedDoc = null;
-				 if (rankedDocs.containsKey(pPosting.getDocumentId())) {
-					 rankedDoc = rankedDocs.get(pPosting.getDocumentId());
-					 newScore = rankedDoc.getScoreAccumulator() + (wqt * pPosting.getWdt());
-					 rankedDoc.setScoreAccumulator(newScore);							 
-				 } else {							 
-					 newScore =  wqt * pPosting.getWdt();
-					 rankedDoc = new RankedDocument(pPosting.getDocumentId(), newScore);
-				 }
-				 rankedDocs.put(pPosting.getDocumentId(), rankedDoc);
-				 //pPosting.setScoreAccumulator(pPosting.getScoreAccumulator() + (wqt * pPosting.getWdt()));
-			 }
 		}
 
 		// Sort the ranked documents in the decreasing order
