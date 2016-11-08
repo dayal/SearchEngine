@@ -231,7 +231,7 @@ public class SearchOverviewController {
 					Path docWeights = Paths.get(this.dirPath + "\\docWeights.bin");
 					Path kGrams = Paths.get(this.dirPath + "\\kGrams.ser");
 
-					boolean createIndexes = false;
+					boolean createIndexes = true;
 					if (positionalVocab.toFile().exists() && !positionalVocab.toFile().isDirectory()
 							&& positionalPostings.toFile().exists() && !positionalPostings.toFile().isDirectory()
 							&& positionalVocabTable.toFile().exists() && !positionalVocabTable.toFile().isDirectory()
@@ -258,10 +258,8 @@ public class SearchOverviewController {
 						// Gets the user response about creating a new index and proceeds accordingly
 						if (isUserOk.get() == ButtonType.CANCEL) {
 							createIndexes = false;
-						} else {
-							createIndexes = true;
-						}			
-					} 
+						}
+					}
 					if (createIndexes) {
 						// go ahead and create the new index
 						// Begin creating the index
@@ -280,39 +278,79 @@ public class SearchOverviewController {
 					
 					// Initializing all the index objects for this session of user queries
 					// The in-memory index would have been already initialized if the user had chosen to create a new in memory index
-					this.diskInvertedIndex = new DiskPositionalIndex(this.dirPath);
-					this.diskBiWordIndex = new DiskBiWordIndex(this.dirPath);
+					
+					/*this.diskInvertedIndex = new DiskPositionalIndex(this.dirPath);
+					this.diskBiWordIndex = new DiskBiWordIndex(this.dirPath);*/
 					
 					// Initializing the kGram index
-					if (this.kGramIndex != null) {
+					Platform.runLater(new Runnable() {
+						
+						@Override
+						public void run() {
+							diskInvertedIndex = new DiskPositionalIndex(dirPath);
+							diskBiWordIndex = new DiskBiWordIndex(dirPath);
+							if (kGramIndex != null) {
+								try {
+									ObjectInputStream kGramInputStream = new ObjectInputStream(
+											new FileInputStream(new File(dirPath, "kGrams.ser")));
+									kGramIndex = (KGramIndex) kGramInputStream.readObject();
+									kGramInputStream.close();
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+							vocab.clear();
+							vocab.addAll(((DiskPositionalIndex)diskInvertedIndex).getCorpusVocabularyFromDisk());
+							corpusVocabSize.setText("Size of Corpus Vocabulary is : " + vocab.size());
+						}
+					});
+					
+					/*new Thread() {
+						public void run() {
+							if (kGramIndex != null) {
+								try {
+									ObjectInputStream kGramInputStream = new ObjectInputStream(
+											new FileInputStream(new File(dirPath, "kGrams.ser")));
+									kGramIndex = (KGramIndex) kGramInputStream.readObject();
+									kGramInputStream.close();
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+							vocab.clear();
+							vocab.addAll(((DiskPositionalIndex)diskInvertedIndex).getCorpusVocabularyFromDisk());
+							corpusVocabSize.setText("Size of Corpus Vocabulary is : " + vocab.size());
+						}
+					}.start();*/
+					
+					/*if (kGramIndex != null) {
 						try {
 							ObjectInputStream kGramInputStream = new ObjectInputStream(
-									new FileInputStream(new File(this.dirPath, "kGrams.ser")));
-							this.kGramIndex = (KGramIndex) kGramInputStream.readObject();
+									new FileInputStream(new File(dirPath, "kGrams.ser")));
+							kGramIndex = (KGramIndex) kGramInputStream.readObject();
 							kGramInputStream.close();
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}
 					
-					
 					// Displaying a message about the total number of words in the vocabulary
 					this.vocab.clear();
-					this.vocab.addAll(((DiskPositionalIndex)this.diskInvertedIndex).getCorpusVocabularyFromDisk());
-					this.corpusVocabSize.setText("Size of Corpus Vocabulary is : " + this.vocab.size());
+					this.vocab.addAll(((DiskPositionalIndex)this.diskInvertedIndex).getCorpusVocabularyFromDisk());					
+					this.corpusVocabSize.setText("Size of Corpus Vocabulary is : " + this.vocab.size());*/
 					
 					// Initializing the fileNames array
 					if (this.fileNames != null && this.fileNames.isEmpty()) {
 						this.fileNames = Utils.readFileNames(this.dirPath);
 					}
 					this.numberOfDocsIndexed.setText("Size of the corpus = " + this.fileNames.size());
-					
 				} else {
 					Alert invalidDirectoryPathAlert = showAlertBox("Invalid Directory path! Please enter a valid directory", AlertType.ERROR);
 					invalidDirectoryPathAlert.showAndWait();
 				}
 			});
 		}
+		System.out.println("Index Creation completed");
 		this.isValidDirectory = false;
 	}
 

@@ -184,20 +184,26 @@ public class DiskPositionalIndex extends DiskIndex<PositionalPosting> {
 	
 	public List<String> getCorpusVocabularyFromDisk() {
 		List<String> vocab = new ArrayList<String>();
-		for (int loc = 0; loc < mVocabTable.length/2 - 1; loc++) {
-			int termLength = (int) (mVocabTable[(loc + 1) * 2] - mVocabTable[loc * 2]);
+		System.out.println(mVocabTable.length);
+		System.out.println(mVocabTable.length / 2);		
+		try {
+			for (int loc = 0; loc < mVocabTable.length / 2; loc++) {
+				int termLength = 0;
+				if (loc == mVocabTable.length / 2 - 1) {
+					termLength = (int) (mVocabList.length() - mVocabTable[loc * 2]);
+				} else {
+					termLength = (int) (mVocabTable[(loc + 1) * 2] - mVocabTable[loc * 2]);
+				}
 
-			byte[] buffer = new byte[termLength];
-			try {
+				byte[] buffer = new byte[termLength];
+
 				mVocabList.read(buffer, 0, termLength);
 				String term = new String(buffer, "ASCII");
-				
 				vocab.add(term);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}			
-		}		
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		return vocab;
 	}
 	
