@@ -199,7 +199,7 @@ public class DiskPositionalIndex extends DiskIndex<PositionalPosting> {
 				byte[] buffer = new byte[termLength];
 
 				mVocabList.read(buffer, 0, termLength);
-				String term = new String(buffer, Charset.forName("UTF-8"));
+				String term = new String(buffer, "ASCII");
 				vocab.add(term);
 			}
 		} catch (IOException e) {

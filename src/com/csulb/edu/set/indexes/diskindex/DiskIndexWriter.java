@@ -1,9 +1,16 @@
 package com.csulb.edu.set.indexes.diskindex;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.csulb.edu.set.indexes.Index;
 import com.csulb.edu.set.indexes.biword.BiWordIndex;
@@ -89,7 +96,7 @@ public class DiskIndexWriter {
 			// also build an array associating each term with its byte location
 			// in this file.
 			int vocabIndex = 0;
-			vocabList = new OutputStreamWriter(new FileOutputStream(new File(folder, indexType.getVocabFileName())), Charset.forName("UTF-8"));
+			vocabList = new OutputStreamWriter(new FileOutputStream(new File(folder, indexType.getVocabFileName())), "ASCII");
 
 			int vocabPos = 0;
 			for (String vocabWord : dictionary) {

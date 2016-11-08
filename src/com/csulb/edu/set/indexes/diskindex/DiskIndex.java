@@ -40,7 +40,7 @@ public abstract class DiskIndex<T> extends Index<T> {
 
 				byte[] buffer = new byte[termLength];
 				mVocabList.read(buffer, 0, termLength);
-				String fileTerm = new String(buffer, Charset.forName("UTF-8"));
+				String fileTerm = new String(buffer, "ASCII");
 
 				int compareValue = term.compareTo(fileTerm);
 				if (compareValue == 0) {
