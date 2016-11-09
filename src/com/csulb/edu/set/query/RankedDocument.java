@@ -3,11 +3,11 @@
  */
 package com.csulb.edu.set.query;
 
+/**
+ * Ranked document file used to keep document scores and sort them
+ */
 public class RankedDocument implements Comparable<RankedDocument> {	
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	
 	private int documentId;

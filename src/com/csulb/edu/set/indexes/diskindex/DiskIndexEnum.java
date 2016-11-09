@@ -1,5 +1,9 @@
 package com.csulb.edu.set.indexes.diskindex;
 
+/**
+ * Enum that stores file names used by different types of disk indexes.
+ *
+ */
 public enum DiskIndexEnum {
 	POSITIONAL_INDEX("positionalVocab.bin", "positionalVocabTable.bin", "positionalPostings.bin"),
 	BI_WORD_INDEX("biWordVocab.bin", "biWordVocabTable.bin", "biWordPostings.bin");

@@ -2,24 +2,31 @@ package com.csulb.edu.set.indexes.diskindex;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.csulb.edu.set.indexes.Index;
 
+/**
+ * Abstract class extended by DiskBiWordIndex and DiskPositionalIndex.
+ * Extends Index class.
+ * 
+ * @param <T>
+ */
 public abstract class DiskIndex<T> extends Index<T> {
 	protected RandomAccessFile mVocabList;
 	protected RandomAccessFile mPostings;
 	protected long[] mVocabTable;
 	
+	/**
+	 * Get postings of a term.
+	 */
 	public abstract List<T> getPostings(String term);
 	
 	/**
-	 * Search the vocab.bin file for the corresponding term.
+	 * Use vobcabTable to search vocab.bin file for the corresponding term.
 	 * 
 	 * @param term
-	 * @return
+	 * @return position of term in vocab file
 	 */
 	protected long binarySearchVocabulary(String term) {
 		// do a binary search over the vocabulary, using the vocabTable and the

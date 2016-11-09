@@ -1,6 +1,5 @@
 package com.csulb.edu.set.indexes.biword;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 

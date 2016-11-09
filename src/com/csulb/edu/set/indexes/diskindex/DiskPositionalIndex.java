@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,10 +12,19 @@ import java.util.stream.Collectors;
 
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
 
+/**
+ * Positional Inverted Index on disk
+ *
+ */
 public class DiskPositionalIndex extends DiskIndex<PositionalPosting> {
 
 	private RandomAccessFile mDocWeights;
 
+	/**
+	 * Create a new positional inverted index on disk.
+	 * 
+	 * @param path directory where the indexes files can be found in
+	 */
 	public DiskPositionalIndex(String path) {
 		super();
 		try {
@@ -29,6 +37,11 @@ public class DiskPositionalIndex extends DiskIndex<PositionalPosting> {
 		}
 	}
 
+	/**
+	 * Get postings given a term.
+	 * 
+	 * @param term
+	 */
 	public List<PositionalPosting> getPostings(String term) {
 		long postingsPosition = binarySearchVocabulary(term);
 		if (postingsPosition >= 0) {
@@ -37,6 +50,13 @@ public class DiskPositionalIndex extends DiskIndex<PositionalPosting> {
 		return null;
 	}
 	
+	/** 
+	 * Get document IDs that match a term by reading postings file with a given postings position
+	 * 
+	 * @param postings postings file
+	 * @param postingsPosition position in postings file where the postings we are looking for starts
+	 * @return list of document IDs
+	 */
 	private static List<PositionalPosting> readPostingsFromFile(RandomAccessFile postings, long postingsPosition) {
 		try {
 			// initialize the array that will hold the postings.
@@ -115,7 +135,13 @@ public class DiskPositionalIndex extends DiskIndex<PositionalPosting> {
 		}
 		return null;
 	}
-
+	
+	/**
+	 * Create a vocab table array by reading the vocab table file
+	 * 
+	 * @param indexPath path where the vocab table file is at
+	 * @return vocab table array that has the positions of each word in vocab files
+	 */
 	private static long[] readVocabTable(String indexName) {
 		try {
 			long[] vocabTable;
@@ -164,10 +190,18 @@ public class DiskPositionalIndex extends DiskIndex<PositionalPosting> {
 		return null;
 	}
 
+	/**
+	 * Get the number of terms in vocab table
+	 */
 	public int getTermCount() {
 		return mVocabTable.length / 2;
 	}
 	
+	/**
+	 * Calculate document weight given doc ID
+	 * @param docId
+	 * @return document weight
+	 */
 	public double getDocWeight(int docId) {
 		try {
 			// set the offset to where the weight of this doc is located at
@@ -183,6 +217,11 @@ public class DiskPositionalIndex extends DiskIndex<PositionalPosting> {
 		return 0;
 	}
 	
+	/**
+	 * Read a list of all vocabs from disk
+	 * 
+	 * @return list of all vocabs
+	 */
 	public List<String> getCorpusVocabularyFromDisk() {
 		List<String> vocab = new ArrayList<String>();
 		System.out.println(mVocabTable.length);

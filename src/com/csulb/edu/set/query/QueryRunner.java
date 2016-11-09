@@ -23,17 +23,14 @@ import com.csulb.edu.set.utils.Utils;
 public class QueryRunner {
 
 	/**
-	 * Parse query input into Query objects and execute the queries
+	 * Parse query input into Query objects and execute queries in boolean mode
 	 * 
-	 * @param queryInput
-	 *            query input
-	 * @param invertedIndex
-	 *            positional inverted index
-	 * @param biWordIndex
-	 *            bi-word index
+	 * @param queryInput query input instance
+	 * @param invertedIndex positional inverted index instance
+	 * @param biWordIndex bi-word index instance
+	 * @param kGramIndex k-gram index instance
 	 * @return a list of document ids that match the queries
-	 * @throws InvalidQueryException
-	 *             when query input is invalid
+	 * @throws InvalidQueryException when query input is invalid
 	 */
 	public static List<Integer> runBooleanQueries(String queryInput, Index<PositionalPosting> invertedIndex,
 			Index<Integer> biWordIndex, KGramIndex kGramIndex) throws InvalidQueryException {
@@ -50,12 +47,25 @@ public class QueryRunner {
 		return docIds;
 	}
 
+	/**
+	 * Parse query input into Query objects and execute queries in ranked mode
+	 * 
+	 * @param queryInput query input instance
+	 * @param invertedIndex positional inverted index instance
+	 * @param biWordIndex bi-word index instance
+	 * @param kGramIndex k-gram index instance
+	 * @parma corpusSize number of documents in corpus
+	 * @return a list of document ids that match the queries
+	 * @throws InvalidQueryException when query input is invalid
+	 */
 	public static List<RankedDocument> runRankedQueries(String queryInput, Index<PositionalPosting> invertedIndex,
 			KGramIndex kGramIndex, int corpusSize) throws InvalidQueryException {
 		System.out.println("Running the query");
 
+		// number of results to be returned in ranked query
 		int k = 10;
 		
+		// priority queue to hold ranked documents
 		PriorityQueue<RankedDocument> pQueue = new PriorityQueue<RankedDocument>();
 		
 		List<RankedDocument> rankedDocumentsList = new ArrayList<RankedDocument>();
@@ -72,6 +82,7 @@ public class QueryRunner {
 		for (Query query : queries) {
 			 for (QueryLiteral queryLiterals : query.getQueryLiterals()) {
 				 for (String word : queryLiterals.getTokens()) {
+					 // if query contains wildcards then get add all k-gram candidates
 					 if (word.contains("*") && kGramIndex != null) {
 						 terms.addAll(getKGramCandidates(word, kGramIndex));
 					 } else {
@@ -89,6 +100,7 @@ public class QueryRunner {
 				// Calculate wqt for this term
 				double wqt = Math.log((1 + ((double) corpusSize / termPostingsList.size())));
 
+				// calculate/accumulate the score of the documents in each posting
 				for (PositionalPosting pPosting : termPostingsList) {
 					double newScore = 0;
 					RankedDocument rankedDoc = null;
@@ -101,8 +113,6 @@ public class QueryRunner {
 						rankedDoc = new RankedDocument(pPosting.getDocumentId(), newScore);
 					}
 					rankedDocs.put(pPosting.getDocumentId(), rankedDoc);
-					// pPosting.setScoreAccumulator(pPosting.getScoreAccumulator()
-					// + (wqt * pPosting.getWdt()));
 				}
 			}
 		}
@@ -138,12 +148,9 @@ public class QueryRunner {
 	 * only if all of the words in the phrase match the document id and there is
 	 * have at least one position that all the words share in their postings.
 	 * 
-	 * @param query
-	 *            Query object
-	 * @param invertedIndex
-	 *            positional inverted index
-	 * @param biWordIndex
-	 *            bi-word index
+	 * @param query Query object
+	 * @param invertedIndex positional inverted index
+	 * @param biWordIndex bi-word index
 	 * @return a list of document IDs that match the query
 	 */
 	private static List<Integer> getdocIdsMatchingQuery(Query query, Index<PositionalPosting> invertedIndex,
@@ -279,19 +286,32 @@ public class QueryRunner {
 		return results;
 	}
 
+	/**
+	 * Get K-Gram candidates
+	 * 
+	 * @param word input word
+	 * @param kGramIndex K-Gram index instance
+	 * @return set of strings of candidates
+	 */
 	private static Set<String> getKGramCandidates(String word, KGramIndex kGramIndex) {
+		
+		// regex representation of the word with wildcards
 		String wordRegex = word.replace("*", ".*");
 		
+		// add dollar signs to the beginning and the end of the word
 		if (word.charAt(0) != '*'){
 			word = '$' + word;
 		}
 		if (word.charAt(word.length() - 1) != '*'){
 			word = word + '$';
 		}
+		
+		// split word by "*"s to create sequences 
 		String[] sequences = word.split("\\*");
 		Set<String> candidates = new HashSet<String>();
 		for (String sequence : sequences) {
 			if (sequence.length() > 3) {
+				// create 3-letter substrings and get candidates
 				for (int i = 0; i < sequence.length() - 3; i++) {
 				    String substr = sequence.substring(i, i+3);
 				    for (String candidate : kGramIndex.get(substr)){

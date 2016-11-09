@@ -8,8 +8,16 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ *	Biword Index on Disk 
+ */
 public class DiskBiWordIndex extends DiskIndex<Integer> {
 
+	/**
+	 * Constructs biWordIndex instance
+	 * 
+	 * @param path path that contains index files
+	 */
 	public DiskBiWordIndex(String path) {
 		try {
 			mVocabList = new RandomAccessFile(new File(path, DiskIndexEnum.BI_WORD_INDEX.getVocabFileName()), "r");
@@ -20,6 +28,9 @@ public class DiskBiWordIndex extends DiskIndex<Integer> {
 		}
 	}
 
+	/**
+	 * Get postings given a term
+	 */
 	public List<Integer> getPostings(String term) {
 		long postingsPosition = binarySearchVocabulary(term);
 		if (postingsPosition >= 0) {
@@ -28,9 +39,15 @@ public class DiskBiWordIndex extends DiskIndex<Integer> {
 		return null;
 	}
 	
+	/** 
+	 * Get document IDs that match a term by reading postings file with a given postings position
+	 * 
+	 * @param postings postings file
+	 * @param postingsPosition position in postings file where the postings we are looking for starts
+	 * @return list of document IDs
+	 */
 	private static List<Integer> readPostingsFromFile(RandomAccessFile postings, long postingsPosition) {
 		try {
-			// initialize the array that will hold the postings.
 			List<Integer> docList = new ArrayList<Integer>();
 
 			// seek to the position in the file where the postings start.
@@ -40,14 +57,10 @@ public class DiskBiWordIndex extends DiskIndex<Integer> {
 			byte[] buffer = new byte[4];
 			postings.read(buffer, 0, buffer.length);
 
-			// use ByteBuffer to convert the 4 bytes into an int.
 			int documentFrequency = ByteBuffer.wrap(buffer).getInt();
 
-			// write the following code:
-			// read 4 bytes at a time from the file, until you have read as many
-			// postings as the document frequency promised.
-			//
-			// after each read, convert the bytes to an int posting. this value
+			// read 4 bytes at a time from the file. After each read, convert
+			// the bytes to an int posting. this value
 			// is the GAP since the last posting. decode the document ID from
 			// the gap and put it in the array.
 			//
@@ -74,34 +87,26 @@ public class DiskBiWordIndex extends DiskIndex<Integer> {
 		return null;
 	}
 
-
-	private static long[] readVocabTable(String indexName) {
+	/**
+	 * Create a vocab table array by reading the vocab table file
+	 * 
+	 * @param indexPath path where the vocab table file is at
+	 * @return vocab table array that has the positions of each word in vocab files
+	 */
+	private static long[] readVocabTable(String indexPath) {
 		try {
 			long[] vocabTable;
 
-			RandomAccessFile tableFile = new RandomAccessFile(new File(indexName, DiskIndexEnum.BI_WORD_INDEX.getVocabTableFileName()), "r");
+			RandomAccessFile tableFile = new RandomAccessFile(new File(indexPath, DiskIndexEnum.BI_WORD_INDEX.getVocabTableFileName()), "r");
 
-			// Creates a byte array named "byteBuffer" of size 4
 			byte[] byteBuffer = new byte[4];
 
 			// Reads the first 4 bytes of data from the vocabTable.bin file into
 			// the byteBuffer array
-			// Recall that while creating the vocabTable.bin file we stored the
-			// size of the dictionary as the first element in the vocab table
-			// Thus the first 4 bytes of data in the vocab table represents the
+			// The first 4 bytes of data in the vocab table represents the
 			// size of the corpus vocabulary
 			tableFile.read(byteBuffer, 0, byteBuffer.length);
 
-			// Initializes the size of the vocabTable long array to the value =
-			// vocabSize * 2. Why ??
-			// Recall that when we store the location of each term in the
-			// dictionary as a 8 bytes value in the vocabTable
-			// Next to each 8 byte position of the word in the vocab file, we
-			// store the 8 bytes location in the postings file where the
-			// postings list entry <df, docId, tf, pos1, ....> for this term
-			// begins in the postings file
-
-			// That's why the size shogetTermCountuld be multiplied by 2
 			vocabTable = new long[ByteBuffer.wrap(byteBuffer).getInt() * 2];
 
 			int tableIndex = 0;

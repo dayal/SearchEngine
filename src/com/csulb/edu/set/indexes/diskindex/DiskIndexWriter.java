@@ -18,12 +18,23 @@ import com.csulb.edu.set.indexes.kgram.KGramIndex;
 import com.csulb.edu.set.indexes.pii.PositionalInvertedIndex;
 import com.csulb.edu.set.indexes.pii.PositionalPosting;
 
+/**
+ * Class that writes indexes to disk
+ *
+ */
 public class DiskIndexWriter {
 	
+	/**
+	 * Store K-Gram index on disk.
+	 * 
+	 * @param dirLocation directory to store the index in.
+	 * @param kGramIndex in-memory K-Gram index
+	 */
 	public static void storeKGramIndexOnDisk(String dirLocation, KGramIndex kGramIndex) {
 		
 		ObjectOutputStream kGramOutputStream = null;
 		try {
+			// serialize K-Gram index object and save as file
 			kGramOutputStream = new ObjectOutputStream(new FileOutputStream(new File(dirLocation, "kGrams.ser")));
 			kGramOutputStream.writeObject(kGramIndex);
 			kGramOutputStream.close();
@@ -32,6 +43,13 @@ public class DiskIndexWriter {
 		}
 	}
 	
+	/**
+	 * Store Bi-Word index on disk. The process is similar to buildPositionalIndexOnDisk()
+	 * 
+	 * @param dirLocation directory to store the index in.
+	 * @param biWordIndex in-memory Bi-Word index
+	 * @param corpusSize number of documents in the corpus
+	 */
 	public static void storeBiWordIndexOnDisk(String dirLocation, BiWordIndex biWordIndex, int corpusSize) {
 		String[] dictionary = biWordIndex.getDictionary();
 		long[] vocabPositions = new long[dictionary.length];
@@ -40,6 +58,13 @@ public class DiskIndexWriter {
 		
 	}
 	
+	/**
+	 * Save document weights on disk.
+	 * 
+	 * @param dirLocation directory to store document weights
+	 * @param docWeights map that maps document id to weight
+	 * @param corpusSize number of documents in the corpus
+	 */
 	public static void saveDocumentWeightsOnDisk(String dirLocation, Map<Integer, Double> docWeights, int corpusSize) {
 		
 		FileOutputStream weights = null;
@@ -58,12 +83,23 @@ public class DiskIndexWriter {
 		}
 	}
 	
+	/**
+	 * Build positional inverted index on disk
+	 * 
+	 * Create the following files on disk: 
+	 * 1. vocab.bin -> all the vocabularies
+	 * 2. vocabTable.bin -> map the position of each vocab in vocab.bin to the
+	 *                      position of the corresponding list of postings in postings.bin
+	 * 3. positngs.bin -> list of postings with additional information for each vocab
+	 * 
+	 * @param dirLocation
+	 *            directory to store the index in
+	 * @param pInvertedIndex
+	 *            in-memory positional inverted index
+	 * @param corpusSize
+	 *            number of documents in corpus
+	 */
 	public static void buildPositionalIndexOnDisk(String dirLocation, PositionalInvertedIndex pInvertedIndex, int corpusSize) {
-
-		// at this point, "index" contains the in-memory inverted index. Now we save the index to disk, building the below three files:
-		// 1. vocab.bin -> stores all the vocabulary terms in ASCII format
-		// 2. vocabTable.bin
-		// 3. positngs.bin
 
 		// the array of terms
 		String[] dictionary = pInvertedIndex.getDictionary();
@@ -84,11 +120,12 @@ public class DiskIndexWriter {
 	 * At the end of the execution of this method, the vocabPositions list will be there in the main memory and will be used in the 
 	 * creation of vocabTable
 	 * 
-	 * @param folder
-	 * @param dictionary
-	 * @param vocabPositions
+	 * @param dirLocation directory where the vocab file is going to be stored in
+	 * @param dictionary array of all vocabs
+	 * @param vocabPositions array of positions of each vocab
+	 * @param indexType type of index (positional/bi-word)
 	 */
-	private static void buildVocabFile(String folder, String[] dictionary, long[] vocabPositions, DiskIndexEnum indexType) {
+	private static void buildVocabFile(String dirLocation, String[] dictionary, long[] vocabPositions, DiskIndexEnum indexType) {
 		OutputStreamWriter vocabList = null;
 		try {
 			// first build the vocabulary list: a file of each vocab word
@@ -96,14 +133,13 @@ public class DiskIndexWriter {
 			// also build an array associating each term with its byte location
 			// in this file.
 			int vocabIndex = 0;
-			vocabList = new OutputStreamWriter(new FileOutputStream(new File(folder, indexType.getVocabFileName())), "ASCII");
+			vocabList = new OutputStreamWriter(new FileOutputStream(new File(dirLocation, indexType.getVocabFileName())), "ASCII");
 
 			int vocabPos = 0;
 			for (String vocabWord : dictionary) {
 				// for each String in dictionary, save the byte position where
 				// that term will start in the vocab file.
 				vocabPositions[vocabIndex] = vocabPos;
-				//System.out.println("Byte Position where the word " + vocabWord + " starts is : " + vocabPos);
 				
 				vocabList.write(vocabWord); // then write the String
 				
@@ -126,22 +162,27 @@ public class DiskIndexWriter {
 	}
 	
 	/**
-	 * Builds the postings.bin file for the indexed directory, using the given
-	 * NaiveInvertedIndex of that directory.
-	 * @param <T>
+	 * Build postings file
+	 * 
+	 * @param dirLocation directory where postings file is stored in
+	 * @param index positional index / bi-word index object
+	 * @param dictionary array of all vocabs
+	 * @param vocabPositions array of positions of all vocabs in vocab file
+	 * @param indexType type of disk index (positional / bi-word)
+	 * @param corpusSize number of documents in the corpus
 	 */
 	@SuppressWarnings("unchecked")
-	private static <T> void buildPostingsFile(String folder, Index<T> pIndex, String[] dictionary, long[] vocabPositions, DiskIndexEnum indexType, int corpusSize) {
+	private static <T> void buildPostingsFile(String dirLocation, Index<T> index, String[] dictionary, long[] vocabPositions, DiskIndexEnum indexType, int corpusSize) {
 		
 		FileOutputStream postingsFile = null;
 		Map<Integer, Double> docWeights = new HashMap<Integer, Double>();
 		
 		try {
-			postingsFile = new FileOutputStream(new File(folder, indexType.getPostingsFileName()));
+			postingsFile = new FileOutputStream(new File(dirLocation, indexType.getPostingsFileName()));
 
 			// simultaneously build the vocabulary table on disk, mapping a term index to a
 			// file location in the postings file.
-			FileOutputStream vocabTable = new FileOutputStream(new File(folder, indexType.getVocabTableFileName()));
+			FileOutputStream vocabTable = new FileOutputStream(new File(dirLocation, indexType.getVocabTableFileName()));
 
 			// the first thing we must write to the vocabTable file is the number of vocab term i.e the size of the corpus dictionary
 			
@@ -164,30 +205,17 @@ public class DiskIndexWriter {
 				// write the vocab table entry for this term: 
 				// byte location of the term in the vocablist file <---> and the byte location of the postings for the term in the postings file.
 				byte[] vPositionBytes = ByteBuffer.allocate(8).putLong(vocabPositions[vocabIndex]).array();
-				
-				// Printing some info for understanding
-				/*System.out.print("position of the first character of the term : " + s + " : is = " + vocabPositions[vocabI] + ". Byte Representation : ");
-				for (int i = 0; i < vPositionBytes.length; i++) {
-					System.out.print(vPositionBytes[i]);
-				}				
-				System.out.print(" ::: number of bytes : " + vPositionBytes.length);
-				System.out.println();*/
-				
+								
 				// Writes the 8 byte representation of the position of the first character of the word 's' in the vocabTable
 				vocabTable.write(vPositionBytes, 0, vPositionBytes.length);
 				
 				byte[] pPositionBytes = ByteBuffer.allocate(8).putLong(postingsFile.getChannel().position()).array();
 				
 				// The address from where the postings list of this term starts in postings.bin file				
-				/*System.out.print("The address in postings.bin from where the postings of the term " + s + "starts : ");
-				for (int i = 0; i < pPositionBytes.length; i++) {
-					System.out.print(pPositionBytes[i]);
-				}*/
-				// System.out.println("The address in postings.bin from where the postings of the term " + s + " starts : " + postingsFile.getChannel().position());
 				vocabTable.write(pPositionBytes, 0, pPositionBytes.length);
 
 				/**
-				 *  BEGIN :: Write the postings.bin file now. Below is a short step by step description
+				 *  Write the postings.bin file.
 				 *  1. Fetch the postings list of this term from the index created in main memory
 				 *  2. Get the size of the postings list => Gives you the number of documents in which this term occurs => doc frequency
 				 *  3. Convert the decimal value of the size of the postings list into a 4 byte value
@@ -197,12 +225,12 @@ public class DiskIndexWriter {
 				 *  6. Convert the decimal value of the size into 4 bytes value
 				 *  7. Now write the first position i.e the first value of the positional list => the positions where this term occurs first in the document
 				 */
+				
 				// write the postings file for this term. first, the document
-				// frequency for the term, then
-				// the document IDs, encoded as gaps.
+				// frequency for the term, then the document IDs, encoded as gaps.
 				
 				// for each String in dictionary, retrieve the list of postings which gives you the document frequency.
-				List<T> postings = pIndex.getPostings(s);
+				List<T> postings = index.getPostings(s);
 				
 				// Now convert the size of the postings list into a 4 byte value
 				byte[] docFreqBytes = ByteBuffer.allocate(4).putInt(postings.size()).array();
@@ -213,11 +241,10 @@ public class DiskIndexWriter {
 				int lastDocId = 0;
 				
 				if (indexType == DiskIndexEnum.POSITIONAL_INDEX) {
+					// Write additional information for positional index
 					for (PositionalPosting positionalPosting : (List<PositionalPosting>) postings) {
 						
 						int docId = positionalPosting.getDocumentId();
-						
-						// System.out.println("Document Id : " + docId + " postings hashcode : " + positionalPosting.getPositions().toString() + " positions size : " + positionalPosting.getPositions().size());
 						
 						// encode a gap, not a docID
 						byte[] docIdBytes = ByteBuffer.allocate(4).putInt(docId - lastDocId).array(); 
@@ -261,6 +288,7 @@ public class DiskIndexWriter {
 						lastDocId = docId;
 					}
 				} else if (indexType == DiskIndexEnum.BI_WORD_INDEX) {
+					// only write doc IDs in gaps if it's bi-word index
 					for (int docId : (List<Integer>) postings) {
 						byte[] docIdBytes = ByteBuffer.allocate(4).putInt(docId - lastDocId).array(); 
 						postingsFile.write(docIdBytes, 0, docIdBytes.length);
@@ -272,7 +300,7 @@ public class DiskIndexWriter {
 			
 			// Create docWeights.bin file
 			if (indexType == DiskIndexEnum.POSITIONAL_INDEX) {
-				saveDocumentWeightsOnDisk(folder, docWeights, corpusSize);
+				saveDocumentWeightsOnDisk(dirLocation, docWeights, corpusSize);
 			}
 			
 			vocabTable.close();
