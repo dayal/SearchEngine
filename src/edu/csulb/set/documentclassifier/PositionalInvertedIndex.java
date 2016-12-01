@@ -1,9 +1,7 @@
 package edu.csulb.set.documentclassifier;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,7 +66,6 @@ public class PositionalInvertedIndex extends Index<PositionalPosting> {
 						try {
 							tokenStream = Utils.getTokenStreams(file.toFile());
 						} catch (FileNotFoundException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 
@@ -94,6 +91,7 @@ public class PositionalInvertedIndex extends Index<PositionalPosting> {
 							 * mDocumentID);
 							 */
 
+							// TODO: no porter stemmer??
 							positionalInvertedIndex.addTerm(token, position, mDocumentID);
 							position++;
 						}
@@ -175,39 +173,5 @@ public class PositionalInvertedIndex extends Index<PositionalPosting> {
 		Arrays.sort(dict);
 		
 		return dict;
-	}
-	
-	public Set<String> populateAlreadyClassifiedDocsList(String dirPath) {
-		Set<String> classifiedFileNames = new HashSet<String>();
-		try {
-			Path currentWorkingPath = Paths.get(dirPath).toAbsolutePath();
-			// This is our standard "walk through all .txt files" code.
-			Files.walkFileTree(currentWorkingPath, new SimpleFileVisitor<Path>() {
-
-				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-					// make sure we only process the current working directory
-					if (currentWorkingPath.equals(dir)) {
-						return FileVisitResult.CONTINUE;
-					}
-					return FileVisitResult.SKIP_SUBTREE;
-				}
-
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-
-					if (file.toString().endsWith(".txt")) {
-						classifiedFileNames.add(file.getFileName().toString());					}
-					return FileVisitResult.CONTINUE;
-				}
-
-				// don't throw exceptions if files are locked/other errors occur
-				public FileVisitResult visitFileFailed(Path file, IOException e) {
-					return FileVisitResult.CONTINUE;
-				}
-			});
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		return classifiedFileNames;
 	}
 }
