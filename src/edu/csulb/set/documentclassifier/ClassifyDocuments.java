@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -209,7 +210,7 @@ public class ClassifyDocuments {
 		
 		// Do feature selection: Calculate Mutual Information
 		List<MutualInformation> mutualInformationList = new ArrayList<MutualInformation>();
-		int k = 500;
+		int k = 50;
 		double N = fileNames.size();
 		
 		List<Set<String>> classifiedDocsList = new ArrayList<Set<String>>();
@@ -247,32 +248,26 @@ public class ClassifyDocuments {
 						+ (N01 / N) * log2((N * N01) / ((N01 + N00) * (N11 + N01)))
 						+ (N10 / N) * log2((N * N10) / ((N11 + N10) * (N10 + N00)))
 						+ (N00 / N) * log2((N * N00) / ((N01 + N00) * (N10 + N00)));
-				mutualInformationList.add(new MutualInformation(term, Itc));
+				if (!Double.isNaN(Itc)) {
+					mutualInformationList.add(new MutualInformation(term, Itc));
+				}
 			}
 		}
 		
 		// Build Discriminating Set of vocab terms by sorting mutual information
 		// list and keep the first k values
 		Set<String> terms = new HashSet<String>();
-		Collections.sort(mutualInformationList);
-		for (int i = 0; i < k; k++) {
+		Collections.sort(mutualInformationList, Collections.reverseOrder());
+		for (int i = 0; i < k; i++) {
 			terms.add(mutualInformationList.get(i).getTerm());
 		}
 		
 		// get term counts in classified (trainer) docs		
-		double[] classifiedDocsTermCount = new double[classifiedDocsList.size()];
-		Set<String> hamiltonTerms = getTerms(hamiltonDocs);
-		Set<String> madisonTerms = getTerms(madisonDocs);
-		Set<String> jayTerms = getTerms(jayDocs);
+		int[] classifiedDocsTermFreq = new int[classifiedDocsList.size()];
 		
-		// only use terms in discriminating set
-		hamiltonTerms.retainAll(terms);
-		madisonTerms.retainAll(terms);
-		jayTerms.retainAll(terms);
-		
-		classifiedDocsTermCount[0] = hamiltonTerms.size();
-		classifiedDocsTermCount[1] = madisonTerms.size();
-		classifiedDocsTermCount[2] = jayTerms.size();
+		classifiedDocsTermFreq[0] = getTermFreq(hamiltonDocs, terms);
+		classifiedDocsTermFreq[1] = getTermFreq(madisonDocs, terms);
+		classifiedDocsTermFreq[2] = getTermFreq(jayDocs, terms);
 		
 		// Calculate p(t|c)
 		// maps term to list of p(t|c) for each class
@@ -281,14 +276,14 @@ public class ClassifyDocuments {
 		for (String term : terms) {
 			ptc.put(term, new ArrayList<Double>());
 			for (int i = 0; i < classifiedDocsList.size(); i++) {
-				// All docs containing this term
-				Set<String> matchingDocs = new HashSet<String>();
 				
+				int ftc = 0;
 				for (PositionalPosting posting : pInvertedIndex.getPostings(term)) {
-					matchingDocs.add(fileNames.get(posting.getDocumentId()));
+					if (classifiedDocsList.get(i).contains(fileNames.get(posting.getDocumentId()))) {
+						ftc += posting.getPositions().size();
+					}
 				}
-				matchingDocs.retainAll(classifiedDocsList.get(i));
-				ptc.get(term).add((matchingDocs.size() + 1 ) / (classifiedDocsTermCount[i] + terms.size()));
+				ptc.get(term).add((double) (ftc + 1) / (double) (classifiedDocsTermFreq[i] + terms.size()));
 			}
 		}
 		
@@ -334,7 +329,7 @@ public class ClassifyDocuments {
 								sum += Math.log(ptc.get(term).get(i));
 							}
 							
-							cd[i] = Math.log(classifiedDocsTermCount[i] / terms.size()) + sum;
+							cd[i] = Math.log(classifiedDocsTermFreq[i] / terms.size()) + sum;
 						}
 						
 						if (cd[0] > cd[1] && cd[0] > cd[2]) {
@@ -399,8 +394,9 @@ public class ClassifyDocuments {
 		return classifiedFileNames;
 	}
 	
-	public static Set<String> getTerms (String dirPath) {
-		Set<String> terms = new HashSet<String>();
+	// Get total frequency of all terms provided
+	public static int getTermFreq (String dirPath, Set<String> terms) {
+		AtomicInteger freq = new AtomicInteger(0);
 		try {
 			Path currentWorkingPath = Paths.get(dirPath).toAbsolutePath();
 			// This is our standard "walk through all .txt files" code.
@@ -428,7 +424,9 @@ public class ClassifyDocuments {
 						while (tokenStream.hasNextToken()) {
 
 							String token = Utils.processWord(tokenStream.nextToken().trim(), false);
-							terms.add(token);
+							if (terms.contains(token)) {
+								freq.incrementAndGet();
+							}
 						}
 					}
 					return FileVisitResult.CONTINUE;
@@ -443,6 +441,6 @@ public class ClassifyDocuments {
 			e.printStackTrace();
 		}
 		
-		return terms;
+		return freq.get();
 	}
 }
