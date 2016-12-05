@@ -43,12 +43,12 @@ public class ClassifyDocuments {
 	 * String toBeClassified -> path to the directory containing the 11 controversial documents to be classified
 	 */
 	
-	String allDocs = "C:\\Users\\Manav\\Documents\\CECS-529_Search_Engine_Technology\\Project\\Federalist_ByAuthors\\ALL";
-	String hamiltonDocs = "C:\\Users\\Manav\\Documents\\CECS-529_Search_Engine_Technology\\Project\\Federalist_ByAuthors\\HAMILTON";
-	String jayDocs = "C:\\Users\\Manav\\Documents\\CECS-529_Search_Engine_Technology\\Project\\Federalist_ByAuthors\\JAY";
-	String madisonDocs = "C:\\Users\\Manav\\Documents\\CECS-529_Search_Engine_Technology\\Project\\Federalist_ByAuthors\\MADISON";
-	String hamiltonAndMadison = "C:\\Users\\Manav\\Documents\\CECS-529_Search_Engine_Technology\\Project\\Federalist_ByAuthors\\HAMILTON AND MADISON";
-	String toBeClassified = "C:\\Users\\Manav\\Documents\\CECS-529_Search_Engine_Technology\\Project\\Federalist_ByAuthors\\HAMILTON OR MADISON";
+	String allDocs = "C:\\Users\\David\\Desktop\\CECS 429\\ALL";
+	String hamiltonDocs = "C:\\Users\\David\\Desktop\\CECS 429\\HAMILTON";
+	String jayDocs = "C:\\Users\\David\\Desktop\\CECS 429\\JAY";
+	String madisonDocs = "C:\\Users\\David\\Desktop\\CECS 429\\MADISON";
+	String hamiltonAndMadison = "C:\\Users\\David\\Desktop\\CECS 429\\HAMILTON AND MADISON";
+	String toBeClassified = "C:\\Users\\David\\Desktop\\CECS 429\\HAMILTON OR MADISON";
 
 	// A list to store all the filenames. The index of the list maps to the documentID stored in the postings list of the inverted index
 	List<String> fileNames = new ArrayList<String>();
@@ -79,6 +79,7 @@ public class ClassifyDocuments {
 		docsClassification.doRocchioClassification();
 
 		// Call doBayesianClassification
+		docsClassification.doBayesianClassification();
 
 	}
 
@@ -206,9 +207,9 @@ public class ClassifyDocuments {
 
 	private void doBayesianClassification() {
 		
-		// Do feature selection: Calculate Mutual Information and keep the highest values in a priority queue
+		// Do feature selection: Calculate Mutual Information
+		List<MutualInformation> mutualInformationList = new ArrayList<MutualInformation>();
 		int k = 500;
-		PriorityQueue<MutualInformation> pQueue  = new PriorityQueue<MutualInformation>(500);
 		double N = fileNames.size();
 		
 		List<Set<String>> classifiedDocsList = new ArrayList<Set<String>>();
@@ -246,16 +247,17 @@ public class ClassifyDocuments {
 						+ (N01 / N) * log2((N * N01) / ((N01 + N00) * (N11 + N01)))
 						+ (N10 / N) * log2((N * N10) / ((N11 + N10) * (N10 + N00)))
 						+ (N00 / N) * log2((N * N00) / ((N01 + N00) * (N10 + N00)));
-				pQueue.add(new MutualInformation(term, Itc));
+				mutualInformationList.add(new MutualInformation(term, Itc));
 			}
 		}
 		
-		// Build Discriminating Set of vocab terms
+		// Build Discriminating Set of vocab terms by sorting mutual information
+		// list and keep the first k values
 		Set<String> terms = new HashSet<String>();
-		for (Object mi : pQueue.toArray()) {
-			terms.add(((MutualInformation) mi).getTerm());
+		Collections.sort(mutualInformationList);
+		for (int i = 0; i < k; k++) {
+			terms.add(mutualInformationList.get(i).getTerm());
 		}
-		
 		
 		// get term counts in classified (trainer) docs		
 		double[] classifiedDocsTermCount = new double[classifiedDocsList.size()];
@@ -286,7 +288,7 @@ public class ClassifyDocuments {
 					matchingDocs.add(fileNames.get(posting.getDocumentId()));
 				}
 				matchingDocs.retainAll(classifiedDocsList.get(i));
-				ptc.get(term).set(i, (matchingDocs.size() + 1 ) / (classifiedDocsTermCount[i] + terms.size()));
+				ptc.get(term).add((matchingDocs.size() + 1 ) / (classifiedDocsTermCount[i] + terms.size()));
 			}
 		}
 		
