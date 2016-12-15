@@ -240,6 +240,7 @@ public class ClassifyDocuments {
 		// Do feature selection: Calculate Mutual Information
 		List<MutualInformation> mutualInformationList = new ArrayList<MutualInformation>();
 		int k = 5;
+		System.out.println("k = " + k);
 		double N = fileNames.size();
 		
 		List<Set<String>> classifiedDocsList = new ArrayList<Set<String>>();
