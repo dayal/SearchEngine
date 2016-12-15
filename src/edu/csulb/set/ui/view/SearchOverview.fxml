@@ -19,7 +19,7 @@
 <?import javafx.scene.effect.Blend?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane fx:id="parentWindow" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.csulb.edu.set.ui.view.SearchOverviewController">
+<AnchorPane fx:id="parentWindow" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.csulb.set.ui.view.SearchOverviewController">
    <children>
       <MenuBar>
         <menus>

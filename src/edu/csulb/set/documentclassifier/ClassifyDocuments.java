@@ -75,12 +75,18 @@ public class ClassifyDocuments {
 
 		// Create the invertedIndex
 		docsClassification.createIndex();
+		
+		long beginTime = System.currentTimeMillis();
 
 		// Call doRocchioClassification
+		System.out.println("As per Rocchio Classification:");
 		docsClassification.doRocchioClassification();
 
 		// Call doBayesianClassification
+		System.out.println("As per Bayesian Classification:");
 		docsClassification.doBayesianClassification();
+		
+		System.out.println("Time taken : " + (System.currentTimeMillis() - beginTime) + "ms");
 
 	}
 
@@ -210,7 +216,7 @@ public class ClassifyDocuments {
 		
 		// Do feature selection: Calculate Mutual Information
 		List<MutualInformation> mutualInformationList = new ArrayList<MutualInformation>();
-		int k = 50;
+		int k = 5;
 		double N = fileNames.size();
 		
 		List<Set<String>> classifiedDocsList = new ArrayList<Set<String>>();
