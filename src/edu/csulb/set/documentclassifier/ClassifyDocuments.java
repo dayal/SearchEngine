@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -44,12 +45,13 @@ public class ClassifyDocuments {
 	 * String toBeClassified -> path to the directory containing the 11 controversial documents to be classified
 	 */
 	
-	String allDocs = "C:\\Users\\David\\Desktop\\CECS 429\\ALL";
-	String hamiltonDocs = "C:\\Users\\David\\Desktop\\CECS 429\\HAMILTON";
-	String jayDocs = "C:\\Users\\David\\Desktop\\CECS 429\\JAY";
-	String madisonDocs = "C:\\Users\\David\\Desktop\\CECS 429\\MADISON";
-	String hamiltonAndMadison = "C:\\Users\\David\\Desktop\\CECS 429\\HAMILTON AND MADISON";
-	String toBeClassified = "C:\\Users\\David\\Desktop\\CECS 429\\HAMILTON OR MADISON";
+	String rootFolder;
+	String allDocs;
+	String hamiltonDocs;
+	String jayDocs;
+	String madisonDocs;
+	String hamiltonAndMadison;
+	String toBeClassified;
 
 	// A list to store all the filenames. The index of the list maps to the documentID stored in the postings list of the inverted index
 	List<String> fileNames = new ArrayList<String>();
@@ -60,6 +62,7 @@ public class ClassifyDocuments {
 	Set<String> setOfHamiltonDocs;
 	Set<String> setOfMadisonDocs;
 	Set<String> setOfJayDocs;
+	Set<String> setOfHamiltonAndMadisonDocs;
 
 	String[] corpusVocab;
 
@@ -72,6 +75,19 @@ public class ClassifyDocuments {
 	public static void main(String[] args) {
 		
 		ClassifyDocuments docsClassification = new ClassifyDocuments();
+		
+		// Ask user for input to the  root directory where all the folders are located
+		Scanner scan = new Scanner(System.in);
+		System.out.println("Enter the path of the directory where all the folders are located\n");
+		docsClassification.rootFolder = scan.next();
+		
+		// Initialize all the other path variables
+		docsClassification.allDocs = docsClassification.rootFolder + "\\ALL";
+		docsClassification.hamiltonDocs = docsClassification.rootFolder + "\\HAMILTON";
+		docsClassification.jayDocs = docsClassification.rootFolder + "\\JAY";
+		docsClassification.madisonDocs = docsClassification.rootFolder + "\\MADISON";
+		docsClassification.hamiltonAndMadison = docsClassification.rootFolder + "\\HAMILTON AND MADISON";
+		docsClassification.toBeClassified = docsClassification.rootFolder + "\\HAMILTON OR MADISON";
 
 		// Create the invertedIndex
 		docsClassification.createIndex();
@@ -114,6 +130,7 @@ public class ClassifyDocuments {
 		setOfHamiltonDocs = populateAlreadyClassifiedDocsList(hamiltonDocs);
 		setOfMadisonDocs = populateAlreadyClassifiedDocsList(madisonDocs);
 		setOfJayDocs = populateAlreadyClassifiedDocsList(jayDocs);
+		setOfHamiltonAndMadisonDocs = populateAlreadyClassifiedDocsList(hamiltonAndMadison);
 	}
 
 	/**
@@ -161,20 +178,26 @@ public class ClassifyDocuments {
 
 			boolean isDocClassified = false;
 
+			// Checks if this document belongs to the Hamilton class. If yes then adds the document vector to the corresponding class.
 			if (setOfHamiltonDocs.contains(fileNames.get(documentVector.getDocumentId()))) {
 				hamiltonDocClass.getDocVectors().add(documentVector);
 				isDocClassified = true;
 			}
+			
+			// Checks if this document belongs to the Jay class. If yes then adds the document vector to the corresponding class.
 			if (setOfJayDocs.contains(fileNames.get(documentVector.getDocumentId()))) {
 				jayDocClass.getDocVectors().add(documentVector);
 				isDocClassified = true;
 			}
+			
+			// Checks  if the current document belongs to the Madison class. If yes then adds the document vector to the corresponding class.
 			if (setOfMadisonDocs.contains(fileNames.get(documentVector.getDocumentId()))) {
 				madisonDocClass.getDocVectors().add(documentVector);
 				isDocClassified = true;
 			}
-
-			if (!isDocClassified) {
+			
+			// Adds the unclassified documents to this set but ignores the set of documents that are known to be written by both Hamilton and Madison.
+			if (!isDocClassified && !setOfHamiltonAndMadisonDocs.contains(fileNames.get(documentVector.getDocumentId()))) {
 				docsToBeClassified.add(documentVector);
 			}
 		}
@@ -217,6 +240,7 @@ public class ClassifyDocuments {
 		// Do feature selection: Calculate Mutual Information
 		List<MutualInformation> mutualInformationList = new ArrayList<MutualInformation>();
 		int k = 5;
+		System.out.println("k = " + k);
 		double N = fileNames.size();
 		
 		List<Set<String>> classifiedDocsList = new ArrayList<Set<String>>();
