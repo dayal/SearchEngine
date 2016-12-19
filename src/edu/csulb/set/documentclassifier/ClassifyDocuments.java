@@ -328,21 +328,21 @@ public class ClassifyDocuments {
 						docTerms.retainAll(terms);
 						
 						// calculate log(p(c) + sum(log(p(ti|c))) for each class
-						double[] cd = new double[classifiedDocsList.size()];
+						double[] pce = new double[classifiedDocsList.size()];
 						for (int i = 0; i < classifiedDocsList.size(); i++) {
 							double sum = 0;
 							for (String term : docTerms) {
 								sum += Math.log(ptc.get(term).get(i));
 							}
 							
-							cd[i] = Math.log(classifiedDocsTermFreq[i] / terms.size()) + sum;
+							pce[i] = Math.log(classifiedDocsTermFreq[i] / terms.size()) + sum;
 						}
 						
-						if (cd[0] > cd[1] && cd[0] > cd[2]) {
+						if (pce[0] > pce[1] && pce[0] > pce[2]) {
 							System.out.println("Document : " + file.getFileName().toString() + " : belongs to Hamilton");
-						} else if (cd[1] > cd[0] && cd[1] > cd[2]) {
+						} else if (pce[1] > pce[0] && pce[1] > pce[2]) {
 							System.out.println("Document : " + file.getFileName().toString() + " : belongs to Madison");
-						} else if (cd[2] > cd[0] && cd[2] > cd[1]) {
+						} else if (pce[2] > pce[0] && pce[2] > pce[1]) {
 							System.out.println("Document : " + file.getFileName().toString() + " : belongs to Jay");
 						} else {
 							System.out.println("I don't know whom document : " + file.getFileName().toString() + " : belongs to.");
